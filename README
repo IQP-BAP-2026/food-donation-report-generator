@@ -1,0 +1,74 @@
+Here is a quick-start setup guide you can add to your repository's README.md or send directly to someone setting up the project in VS Code.
+
+Project Setup & Execution Guide
+Prerequisites
+Python 3.10+ installed on your system.
+
+VS Code with the Python Extension installed.
+
+Node.js / Chromium dependencies (handled automatically via Playwright setup below).
+
+1. Clone & Open in VS Code
+Open your terminal (or Command Prompt) and run:
+
+Bash
+# Clone the repository
+git clone <YOUR_GITHUB_REPO_URL>
+
+# Navigate into the project directory
+cd report-generator
+Open the project folder in VS Code:
+
+Bash
+code .
+2. Set Up a Virtual Environment
+Open the integrated terminal in VS Code (Ctrl + ~ or Cmd + ~) and create a Python virtual environment:
+
+Windows (PowerShell / Command Prompt):
+
+PowerShell
+python -m venv venv
+.\venv\Scripts\activate
+macOS / Linux:
+
+Bash
+python3 -m venv venv
+source venv/bin/activate
+VS Code Tip: When prompted by VS Code with "We noticed a new virtual environment has been created. Do you want to select it for the workspace folder?", click Yes.
+
+3. Install Required Dependencies
+Install the core Python packages (pandas, openpyxl, jinja2, playwright):
+
+Bash
+pip install pandas openpyxl jinja2 playwright
+If you have a requirements.txt file in your repository, you can run:
+
+Bash
+pip install -r requirements.txt
+4. Install Playwright Browsers
+Playwright requires Chromium to render the HTML template and export the PDF:
+
+Bash
+playwright install chromium
+5. Verify Required Project Files
+Ensure the following files are present in the root directory before running:
+
+generator.py — The main generation script.
+
+report-template.html — The HTML/Jinja template.
+
+master-excel.xlsx — The donor database spreadsheet.
+
+photos/ — Folder containing community_photo1.jpg and community_photo2.jpg.
+
+6. Run the Generator
+Run the generator script directly from the VS Code terminal:
+
+Bash
+python generator.py
+
+Usage:
+
+When prompted (Enter company/donor name (or type 'ALL'):), enter a donor name (e.g., NESTLE PANAMA) or type ALL to generate reports for every donor in the Excel file.
+
+The generated PDFs will be saved directly in the project root as report-template_<DONOR_NAME>.pdf.

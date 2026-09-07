@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reporte de Trazabilidad - {{ company_name }}</title>
+<link rel="stylesheet" href="food-traceability.css">
+</head>
+<body>
+<main class="food-report">
+
+  <!-- PAGE 1: TITLE ONLY -->
+  <section class="page title-page">
+    <div class="cover-top"></div>
+    <div class="cover-food"><img src="assets/food/header-banner.png" alt=""></div>
+    <div class="cover-content">
+      <div class="cover-logos">
+        <div class="logo-card"><img src="assets/logos/logo-bap-clean.png" alt="Banco de Alimentos Panamá"></div>
+        <div class="cover-divider"></div>
+        <div class="logo-card"><img src="assets/logos/logo-fsbv-clean.png" alt="Fundación Sus Buenos Vecinos"></div>
+      </div>
+      <div class="cover-label">REPORTE DE TRAZABILIDAD DE ALIMENTOS</div>
+      <h1>Reporte de<br><span>Trazabilidad</span></h1>
+      <div class="cover-rule"></div>
+      <div class="cover-prepared">REPORTE PREPARADO PARA</div>
+      <div class="cover-company">{{ company_name }}</div>
+      <div class="cover-period">{{ month_name|default('') }} · {{ year|default('2026') }}</div>
+    </div>
+    <div class="cover-bottom">
+      Banco de Alimentos Panamá · Fundación Sus Buenos Vecinos
+    </div>
+  </section>
+
+  <!-- PAGE 2: REPORT -->
+  <section class="page report-page">
+    <header class="report-header">
+      <img class="header-art" src="assets/food/header-banner.png" alt="">
+      <div class="header-heading">
+        <span>Reporte de Trazabilidad</span>
+        <strong>{{ month_name|default('') }} · {{ year|default('2026') }}</strong>
+      </div>
+      <img class="header-photo" src="assets/food/donor-circle-photo.png" alt="">
+    </header>
+
+    <div class="green-band">
+      <div>Alimentos rescatados por el</div>
+      <div>Banco de Alimentos en colaboración con:</div>
+    </div>
+
+    <section class="intro">
+      <div class="intro-copy">
+        <div class="eyebrow">IMPACTARON A:</div>
+        <h2>{{ company_name }}</h2>
+      </div>
+      <p>Estimado donante, mediante este reporte queremos darle visibilidad sobre el impacto que hemos logrado, apalancados en los alimentos rescatados recibidos de su organización durante este mes.</p>
+    </section>
+
+    <!-- FIVE REQUIRED TOP FIGURES -->
+    <section class="hero-metrics">
+      <article class="metric-card metric-green">
+        <div class="metric-icon"><img src="assets/food/icon-truck.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-head"><div class="metric-kicker">KG RESCATADOS</div><div class="metric-pct">{{ kilos_share|default(0) }}%</div></div>
+          <div class="metric-number">{{ kilos_donated|default('0') }}</div>
+          <div class="metric-unit">KILOGRAMOS</div>
+          <div class="metric-sub">en el mes</div>
+        </div>
+      </article>
+
+      <article class="metric-card metric-light-green">
+        <div class="metric-icon"><img src="assets/food/icon-check.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-head"><div class="metric-kicker">KG APROVECHABLES</div><div class="metric-pct">{{ usable_pct|default(0) }}%</div></div>
+          <div class="metric-number">{{ kilos_usable|default('0') }}</div>
+          <div class="metric-unit">KILOGRAMOS</div>
+          <div class="metric-sub">aptos para el consumo humano</div>
+        </div>
+      </article>
+
+      <article class="metric-card metric-light-orange">
+        <div class="metric-icon"><img src="assets/food/icon-waste.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-head"><div class="metric-kicker">KG MERMA</div><div class="metric-pct">{{ waste_pct|default(0) }}%</div></div>
+          <div class="metric-number">{{ kilos_waste|default('0') }}</div>
+          <div class="metric-unit">KILOGRAMOS</div>
+          <div class="metric-sub">no aptos para el consumo humano</div>
+        </div>
+      </article>
+
+      <article class="metric-card metric-orange">
+        <div class="metric-icon"><img src="assets/food/icon-meal.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-kicker">TRADUCIDOS EN:</div>
+          <div class="metric-number">{{ meals_served|default('0') }}</div>
+          <div class="metric-unit">PLATOS DE COMIDA</div>
+        </div>
+      </article>
+
+      <article class="metric-card metric-blue">
+        <div class="metric-icon"><img src="assets/food/icon-organization.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-kicker">IMPACTARON A:</div>
+          <div class="metric-number">{{ orgs_helped|default('0') }}</div>
+          <div class="metric-unit">ORGANIZACIONES BENEFICIARIAS</div>
+          <div class="metric-sub">que en conjunto alcanzan a una población total de <strong>{{ beneficiaries|default('0') }}</strong></div>
+        </div>
+      </article>
+    </section>
+
+    <!-- MONTHLY SUMMARY -->
+    <section class="monthly-section">
+      <h2>Resumen de donaciones mensualmente durante el año {{ year }}</h2>
+      <div class="monthly-table-wrap">
+        <table class="monthly-table">
+          <thead>
+            <tr><th>MES</th>{% for month in month_labels %}<th>{{ month }}</th>{% endfor %}<th>RESUMEN</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Kilos totales entregados (kg)</th>
+              {% for value in monthly_data.kilos %}<td>{{ value }}</td>{% endfor %}
+              <td class="summary-cell"><strong>{{ monthly_data.kilos_total|default('0') }}</strong><small>Total</small></td>
+            </tr>
+            <tr>
+              <th>Organizaciones beneficiarias</th>
+              {% for value in monthly_data.organizations %}<td>{{ value }}</td>{% endfor %}
+              <td class="summary-cell"><strong>{{ monthly_data.organizations_average|default('0') }}</strong><small>Promedio mensual</small></td>
+            </tr>
+            <tr>
+              <th>Población alcanzada</th>
+              {% for value in monthly_data.population %}<td>{{ value }}</td>{% endfor %}
+              <td class="summary-cell"><strong>{{ monthly_data.population_average|default('0') }}</strong><small>Promedio mensual</small></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">Promedios calculados únicamente con los meses que contienen datos reportados.</p>
+    </section>
+
+    <!-- NATIONAL DISTRIBUTION -->
+    <section class="national-section">
+      <div class="national-heading">
+        <h2>Distribución y colocación de los alimentos a nivel nacional</h2>
+        <div class="month-delivered"><strong>{{ national_delivered_kg or kilos_donated or '0' }}</strong> <span>kg</span><small>KILOS TOTALES ENTREGADOS EN EL MES</small></div>
+      </div>
+      <div class="map-stage">
+        <img class="panama-map" src="assets/food/panama-map.png" alt="Mapa de Panamá">
+        {% for point in map_points %}
+        <div class="map-value" style="left:{{ point.x }}%;top:{{ point.y }}%;"><span class="map-number">{{ point.value }}</span><span class="map-unit">kg</span></div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <img class="distribution-photo" src="assets/food/distribution-photo-strip.png" alt="Distribución de alimentos">
+
+    <footer class="report-footer">
+      <div class="footer-heart">♥</div>
+      <div class="footer-copy"><strong>¡Gracias por ser parte de esta cadena de bien!</strong><span>Juntos seguimos transformando alimentos en esperanza para miles de familias.</span></div>
+      <div class="footer-meta">Reporte de Trazabilidad · {{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
+    </footer>
+  </section>
+
+</main>
+</body>
+</html>

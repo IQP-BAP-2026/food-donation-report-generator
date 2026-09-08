@@ -810,7 +810,7 @@ def extract_regional_data(
 ) -> list[dict]:
     """
     Find regional kg columns and beneficiary columns in the donor row,
-    summing them up per region.
+    summing them up per region. Filters out regions with no data.
     """
 
     results = []
@@ -847,15 +847,17 @@ def extract_regional_data(
             if "benef" in column_slug:
                 beneficiaries += safe_float(row.get(column))
 
-        results.append(
-            {
-                "region": display_name,
-                "kg_raw": kg,
-                "ben_raw": beneficiaries,
-                "kg": fmt_num(kg),
-                "ben": fmt_num(beneficiaries),
-            }
-        )
+        # Only append region if it has data (kg or beneficiaries)
+        if kg > 0 or beneficiaries > 0:
+            results.append(
+                {
+                    "region": display_name,
+                    "kg_raw": kg,
+                    "ben_raw": beneficiaries,
+                    "kg": fmt_num(kg),
+                    "ben": fmt_num(beneficiaries),
+                }
+            )
 
     total_kg = sum(
         item["kg_raw"]

@@ -120,6 +120,16 @@ def fmt_num(value: Any, decimals: int = 0) -> str:
     return f"{number:,.{decimals}f}"
 
 
+def get_optional_user_photos() -> list[str]:
+    """Return optional custom photos that have actually been replaced with real images."""
+    results = []
+    for i in range(1, 4):
+        path = BASE_DIR / "assets" / "photos" / f"custom_photo{i}.jpg"
+        if path.exists() and path.stat().st_size > 10_000:
+            results.append(str(path.relative_to(BASE_DIR)).replace("\\", "/"))
+    return results
+
+
 def get_image_base64(relative_path: str) -> str:
     """
     Optional helper for donor-specific photos.
@@ -519,44 +529,106 @@ def infer_month_from_monthly_value(
     return None
 
 
-def find_reliable_reporting_month(
+def find_reliable_reporting_period(
     df: pd.DataFrame,
     row: pd.Series,
     rescued_value: float,
     monthly_kilos: list[float],
-) -> int | None:
-    """Find an explicit report month first, then infer it from monthly KG data."""
-    # Look only at columns that are genuinely month/date fields.
-    month_candidates = []
-    for column in df.columns:
-        name = slug(column)
-        if any(token in name for token in [
-            "mes", "fecha", "date", "periodo", "period", "reportmonth", "month",
-        ]) and not any(token in name for token in [
-            "donated", "donacion", "donaciones", "kilos", "kilo", "kg",
-        ]):
-            month_candidates.append(column)
+) -> tuple[int | None, int | None]:
+    """Resolve the report month/year from spreadsheet data.
 
-    for column in month_candidates:
-        raw = norm(row.get(column))
+    Priority:
+      1. Explicit report/date/period fields in the selected spreadsheet row.
+      2. Date/month information embedded in the spreadsheet's filename field.
+      3. The monthly KG series, matching the selected donor's monthly donation.
+
+    The year is never guessed from arbitrary numeric cells. If the workbook does
+    not contain a report year, a documented fallback of 2026 is used so the
+    template remains usable with the current master sheet.
+    """
+    month = None
+    year = None
+
+    preferred_tokens = [
+        "fechareporte", "reportdate", "reportingdate",
+        "mesreporte", "reportmonth", "periodoreporte",
+        "reportperiod", "fecha", "date", "mes", "month",
+        "periodo", "period",
+    ]
+    excluded_tokens = [
+        "donated", "donacion", "donaciones", "kilos", "kilo", "kg",
+        "poblacion", "benefici", "organizacion", "org",
+    ]
+
+    def read_period_from_value(raw_value: Any) -> tuple[int | None, int | None]:
+        raw = norm(raw_value)
         if not raw:
-            continue
+            return None, None
 
-        month_number = detect_month_in_text(raw)
-        if month_number:
-            return month_number
+        found_month = detect_month_in_text(raw)
+        found_year = detect_year_in_text(raw)
 
         try:
             date_value = pd.to_datetime(raw, errors="coerce", dayfirst=True)
             if not pd.isna(date_value):
-                return int(date_value.month)
+                found_month = found_month or int(date_value.month)
+                found_year = found_year or int(date_value.year)
         except Exception:
             pass
 
-    return infer_month_from_monthly_value(
-        rescued_value,
-        monthly_kilos,
-    )
+        return found_month, found_year
+
+    # Explicit date/period fields first.
+    for column in df.columns:
+        column_slug = slug(column)
+        if not any(token in column_slug for token in preferred_tokens):
+            continue
+        if any(token in column_slug for token in excluded_tokens):
+            continue
+
+        m, y = read_period_from_value(row.get(column))
+        month = month or m
+        year = year or y
+        if month and year:
+            break
+
+    # File-name metadata can also be maintained in the spreadsheet itself.
+    if not month or not year:
+        for column in df.columns:
+            column_slug = slug(column)
+            if not ("archivo" in column_slug or "filename" in column_slug or "file" in column_slug):
+                continue
+            m, y = read_period_from_value(row.get(column))
+            month = month or m
+            year = year or y
+            if month and year:
+                break
+
+    # In the current master sheet the row's monthly KG columns are the
+    # authoritative source for the reporting month because there is no explicit
+    # date column. Match the monthly value to {KG DONADOS EN EL MES}.
+    if not month:
+        month = infer_month_from_monthly_value(
+            rescued_value,
+            monthly_kilos,
+        )
+
+    # Look for an explicit year field only; do not scan arbitrary numeric data.
+    if not year:
+        for column in df.columns:
+            column_slug = slug(column)
+            if not any(token in column_slug for token in ["year", "ano", "año"]):
+                continue
+            y = detect_year_in_text(row.get(column))
+            if y:
+                year = y
+                break
+
+    # Current master sheet has monthly fields but no year/date field.
+    if not year:
+        year = 2026
+
+    return month, year
 
 
 # ============================================================
@@ -682,6 +754,12 @@ def extract_food_metrics(
             population_value = safe_float(first_row.get(column))
             break
 
+    usable_has_source = bool(usable_col) or used_pct_col is not None
+    waste_has_source = bool(waste_col) or merma_pct_col is not None
+    plates_has_source = bool(plates_col)
+    orgs_has_source = bool(orgs_col)
+    population_has_source = bool(population_col)
+
     return {
         "rescued_value": rescued_value,
         "rescued_col": rescued_col,
@@ -700,6 +778,11 @@ def extract_food_metrics(
         "usable_pct": round((usable_value / rescued_value * 100.0) if rescued_value > 0 else 0.0, 1),
         "waste_pct": round((waste_value / rescued_value * 100.0) if rescued_value > 0 else 0.0, 1),
         "rescued_pct": round(100.0 if rescued_value > 0 else 0.0, 1),
+        "usable_has_source": usable_has_source,
+        "waste_has_source": waste_has_source,
+        "plates_has_source": plates_has_source,
+        "orgs_has_source": orgs_has_source,
+        "population_has_source": population_has_source,
     }
 
 
@@ -708,10 +791,7 @@ def extract_food_metrics(
 # ============================================================
 
 REGIONS = [
-    ("Panamá Centro", ["P CENTRO", "PANAMA CENTRO"]),
-    ("Panamá Este", ["ESTE", "PANAMA ESTE"]),
-    ("Panamá Norte", ["NORTE", "PANAMA NORTE"]),
-    ("San Miguelito", ["SAN MIGUELITO"]),
+    ("Panamá", ["P CENTRO", "PANAMA CENTRO", "ESTE", "PANAMA ESTE", "NORTE", "PANAMA NORTE", "SAN MIGUELITO"]),
     ("Panamá Oeste", ["OESTE", "PANAMA OESTE"]),
     ("Coclé", ["COCLE"]),
     ("Colón", ["COLON"]),
@@ -719,7 +799,7 @@ REGIONS = [
     ("Herrera", ["HERRERA"]),
     ("Los Santos", ["LOS SANTOS"]),
     ("Veraguas", ["VERAGUAS"]),
-    ("Chiriquí", ["CHIQUIRI"]),
+    ("Chiriquí", ["CHIRIQUI"]),
     ("Bocas del Toro", ["BOCAS"]),
     ("Comarca Ngäbe Buglé", ["COMARCA NGABE BUGLE"]),
 ]
@@ -729,7 +809,8 @@ def extract_regional_data(
     row: pd.Series,
 ) -> list[dict]:
     """
-    Find regional kg columns and beneficiary columns in the donor row.
+    Find regional kg columns and beneficiary columns in the donor row,
+    summing them up per region.
     """
 
     results = []
@@ -743,39 +824,38 @@ def extract_regional_data(
 
             column_slug = slug(column)
 
+            # Prevent 'OESTE' columns from matching 'ESTE'
+            if display_name == "Panamá" and "oeste" in column_slug:
+                continue
+
+            # Check if any alias matches this column
             if not any(
                 slug(alias) in column_slug
                 for alias in aliases
             ):
                 continue
 
+            # Sum up kilograms across all matching columns
             if "kg" in column_slug and (
                 "asign" in column_slug
                 or "donat" in column_slug
                 or "kilo" in column_slug
             ):
-                kg = max(
-                    kg,
-                    safe_float(row.get(column)),
-                )
+                kg += safe_float(row.get(column))
 
+            # Sum up beneficiaries across all matching columns
             if "benef" in column_slug:
-                beneficiaries = max(
-                    beneficiaries,
-                    safe_float(row.get(column)),
-                )
+                beneficiaries += safe_float(row.get(column))
 
-        if kg > 0 or beneficiaries > 0:
-
-            results.append(
-                {
-                    "region": display_name,
-                    "kg_raw": kg,
-                    "ben_raw": beneficiaries,
-                    "kg": fmt_num(kg),
-                    "ben": fmt_num(beneficiaries),
-                }
-            )
+        results.append(
+            {
+                "region": display_name,
+                "kg_raw": kg,
+                "ben_raw": beneficiaries,
+                "kg": fmt_num(kg),
+                "ben": fmt_num(beneficiaries),
+            }
+        )
 
     total_kg = sum(
         item["kg_raw"]
@@ -794,7 +874,6 @@ def extract_regional_data(
 
     return results
 
-
 # ============================================================
 # MONTHLY REPORT DATA
 # ============================================================
@@ -802,16 +881,12 @@ def extract_regional_data(
 def extract_monthly_data(
     donor_rows: pd.DataFrame,
 ) -> dict:
-    """
-    Build monthly series for:
-      - kilos
-      - organizations
-      - population
+    """Build monthly data and track which categories are actually populated."""
+    months = 12
+    kilos_raw = empty_month_series()
+    organizations_raw = empty_month_series()
+    population_raw = empty_month_series()
 
-    The raw numeric series are retained for reliable month inference and
-    averages; underscore-prefixed keys are not displayed directly in the HTML.
-    """
-    kilos_raw = []
     kilo_columns = {}
     for column in donor_rows.columns:
         name = slug(column)
@@ -820,26 +895,12 @@ def extract_monthly_data(
             if month:
                 kilo_columns[month] = column
     if kilo_columns:
-        kilos_raw = empty_month_series()
         for month, column in kilo_columns.items():
             kilos_raw[month - 1] = donor_rows[column].apply(safe_float).sum()
     else:
-        kilos_raw = get_monthly_series(
-            donor_rows,
-            ["kg", "kilo", "kilos", "kilogram"],
-        ) or []
+        fallback = get_monthly_series(donor_rows, ["kg", "kilo", "kilos", "kilogram"]) or []
+        kilos_raw = (fallback + [0.0] * months)[:months]
 
-    organizations_raw = get_monthly_series(
-        donor_rows,
-        [
-            "organizacion",
-            "organization",
-            "org",
-        ],
-    ) or []
-
-    # The master workbook uses OB_Ene ... OB_Dic for beneficiary organizations.
-    # These exact fields are preferred over generic matching.
     ob_columns = {}
     for column in donor_rows.columns:
         name = slug(column)
@@ -848,11 +909,12 @@ def extract_monthly_data(
             if month:
                 ob_columns[month] = column
     if ob_columns:
-        organizations_raw = empty_month_series()
         for month, column in ob_columns.items():
             organizations_raw[month - 1] = donor_rows[column].apply(safe_float).sum()
+    else:
+        fallback = get_monthly_series(donor_rows, ["organizacion", "organization", "org"]) or []
+        organizations_raw = (fallback + [0.0] * months)[:months]
 
-    population_raw = []
     population_columns = {}
     for column in donor_rows.columns:
         name = slug(column)
@@ -861,35 +923,51 @@ def extract_monthly_data(
             if month:
                 population_columns[month] = column
     if population_columns:
-        population_raw = empty_month_series()
         for month, column in population_columns.items():
             population_raw[month - 1] = donor_rows[column].apply(safe_float).sum()
     else:
-        population_raw = get_monthly_series(
-            donor_rows,
-            ["beneficiario", "beneficiarios", "poblacion", "población", "personas"],
-        ) or []
+        fallback = get_monthly_series(donor_rows, ["beneficiario", "beneficiarios", "poblacion", "población", "personas"]) or []
+        population_raw = (fallback + [0.0] * months)[:months]
+
+    tracked = {
+        "kilos": any(v > 0 for v in kilos_raw),
+        "organizations": any(v > 0 for v in organizations_raw),
+        "population": any(v > 0 for v in population_raw),
+    }
+
+    reported = []
+    for index in range(months):
+        values = []
+        if tracked["kilos"]:
+            values.append(kilos_raw[index])
+        if tracked["organizations"]:
+            values.append(organizations_raw[index])
+        if tracked["population"]:
+            values.append(population_raw[index])
+        if any(v > 0 for v in values):
+            reported.append(index + 1)
 
     result = {
         "_kilos_raw": kilos_raw,
         "_organizations_raw": organizations_raw,
         "_population_raw": population_raw,
+        "tracked": tracked,
+        "reported_month_numbers": reported,
+        "reported_month_labels": [MONTHS_ES[i - 1][0] for i in reported],
     }
 
-    if kilos_raw:
+    if tracked["kilos"]:
         result["kilos"] = format_month_series(kilos_raw)
+        result["kilos_display"] = [result["kilos"][i - 1] if kilos_raw[i - 1] > 0 else "—" for i in reported]
         result["kilos_total"] = total_from_series(kilos_raw)
-
-    if organizations_raw:
+    if tracked["organizations"]:
         result["organizations"] = format_month_series(organizations_raw)
-        result["organizations_total"] = total_from_series(organizations_raw)
+        result["organizations_display"] = [result["organizations"][i - 1] if organizations_raw[i - 1] > 0 else "—" for i in reported]
         result["organizations_average"] = average_from_series(organizations_raw)
-
-    if population_raw:
+    if tracked["population"]:
         result["population"] = format_month_series(population_raw)
-        result["population_total"] = total_from_series(population_raw)
+        result["population_display"] = [result["population"][i - 1] if population_raw[i - 1] > 0 else "—" for i in reported]
         result["population_average"] = average_from_series(population_raw)
-
     return result
 
 
@@ -901,22 +979,19 @@ def extract_monthly_data(
 # These positions are visual anchors only; the actual values
 # still come from the spreadsheet.
 MAP_POSITIONS = {
-    # Positions are percentages relative to the transparent Panama map asset.
-    # Labels are intentionally spread inside their province while remaining on-map.
-    "Bocas del Toro": (8, 28),
-    "Chiriquí": (24, 56),
-    "Veraguas": (36, 66),
-    "Coclé": (49, 56),
-    "Herrera": (54, 68),
-    "Los Santos": (62, 74),
-    "Panamá Oeste": (61, 45),
-    "Panamá Centro": (70, 47),
-    "Panamá Este": (84, 51),
-    "Darién": (94, 66),
-    "Colón": (63, 27),
-    "Panamá Norte": (72, 37),
-    "San Miguelito": (73, 43),
-    "Comarca Ngäbe Buglé": (18, 44),
+    # Province anchors calibrated to the cleaned map asset itself.
+    # Coordinates are percentages of the actual 1473x609 map canvas.
+    "Bocas del Toro": (7, 15),
+    "Chiriquí": (8, 46),
+    "Comarca Ngäbe Buglé": (23, 42),
+    "Veraguas": (33, 57),
+    "Coclé": (45, 43),
+    "Herrera": (40, 72),
+    "Los Santos": (47, 83),
+    "Panamá Oeste": (54, 32),
+    "Panamá": (68, 19),
+    "Colón": (56, 13),
+    "Darién": (90, 70),
 }
 
 
@@ -1003,6 +1078,13 @@ def build_report_data(
     plates = food["plates_value"]
     orgs = food["orgs_value"]
     population = food["population_value"]
+    orgs_available = orgs > 0
+    population_available = population > 0
+    orgs_tracked = food.get("orgs_has_source", False)
+    population_tracked = food.get("population_has_source", False)
+    usable_tracked = food.get("usable_has_source", False)
+    waste_tracked = food.get("waste_has_source", False)
+    plates_tracked = food.get("plates_has_source", False)
 
     # Some versions of the master sheet store food quality as percentages
     # instead of explicit usable/merma kilogram columns. Derive the kg values
@@ -1096,24 +1178,20 @@ def build_report_data(
         matches
     )
 
+    # Monthly fields are also authoritative evidence that a category is tracked.
+    orgs_tracked = orgs_tracked or monthly_data.get("tracked", {}).get("organizations", False)
+    population_tracked = population_tracked or monthly_data.get("tracked", {}).get("population", False)
+
     # --------------------------------------------------------
     # Reporting month
     # --------------------------------------------------------
 
-    month_number = find_reliable_reporting_month(
+    month_number, year_number = find_reliable_reporting_period(
         df,
         row,
         rescued,
         monthly_data.get("_kilos_raw", []),
     )
-
-    # If there is no explicit month/date cell, the monthly KG series is the
-    # source of truth. Pick the latest month with reported KG, which matches
-    # the current monthly donation represented by {KG DONATED IN THE MONTH}.
-    if not month_number:
-        kilos_series = monthly_data.get("_kilos_raw", [])
-        nonzero = [i + 1 for i, value in enumerate(kilos_series) if value > 0]
-        month_number = nonzero[-1] if nonzero else None
 
     month_name = (
         MONTHS_ES[month_number - 1][0]
@@ -1127,48 +1205,29 @@ def build_report_data(
         idx = month_number - 1
         org_series = monthly_data.get("_organizations_raw", [])
         population_series = monthly_data.get("_population_raw", [])
-        if idx < len(org_series):
+        if orgs_tracked and idx < len(org_series) and org_series[idx] > 0:
             orgs = org_series[idx]
-        if idx < len(population_series):
+            orgs_available = True
+        elif orgs_tracked:
+            orgs = 0.0
+            orgs_available = False
+        else:
+            orgs = 0.0
+            orgs_available = False
+        if population_tracked and idx < len(population_series) and population_series[idx] > 0:
             population = population_series[idx]
+            population_available = True
+        elif population_tracked:
+            population = 0.0
+            population_available = False
+        else:
+            population = 0.0
+            population_available = False
     # --------------------------------------------------------
     # Year
     # --------------------------------------------------------
 
-    year = "2026"
-
-    # Search a year field first.
-    year_col = find_col(
-        df,
-        [
-            "año",
-            "ano",
-            "year",
-        ],
-    )
-
-    if year_col:
-        year_number = detect_year_in_text(
-            row.get(year_col)
-        )
-
-        if year_number:
-            year = str(year_number)
-
-    # Search column names for a year if needed.
-    if year == "2026":
-
-        for column in df.columns:
-
-            detected_year = detect_year_in_text(
-                column
-            )
-
-            if detected_year:
-                year = str(
-                    detected_year
-                )
-                break
+    year = str(year_number or 2026)
 
     # --------------------------------------------------------
     # National delivered kg
@@ -1246,17 +1305,29 @@ def build_report_data(
         "month_name": month_name,
 
         # Core food figures
-        "kilos_donated": fmt_num(rescued),
+        "kilos_donated": fmt_num(rescued) if rescued > 0 else "",
 
-        "kilos_usable": fmt_num(usable),
+        "kilos_usable": fmt_num(usable) if usable > 0 else "",
 
-        "kilos_waste": fmt_num(waste),
+        "kilos_waste": fmt_num(waste) if rescued > 0 else "",
 
-        "meals_served": fmt_num(plates),
+        "meals_served": fmt_num(plates) if plates > 0 else "",
 
-        "orgs_helped": fmt_num(orgs),
+        "rescued_has_data": rescued > 0,
 
-        "beneficiaries": fmt_num(population),
+        "usable_has_data": rescued > 0 and usable_tracked,
+
+        "waste_has_data": rescued > 0 and waste_tracked,
+
+        "plates_has_data": plates_tracked and plates > 0,
+
+        "orgs_helped": fmt_num(orgs) if orgs_available else "",
+
+        "beneficiaries": fmt_num(population) if population_available else "",
+
+        "orgs_available": orgs_available and orgs_tracked,
+
+        "population_available": population_available and population_tracked,
 
         # Percentages
         "kilos_share": food["rescued_pct"],
@@ -1268,10 +1339,10 @@ def build_report_data(
         # Monthly
         "monthly_data": monthly_data,
 
-        "month_labels": [
-            month[0]
-            for month in MONTHS_ES
-        ],
+        "month_labels": monthly_data.get(
+            "reported_month_labels",
+            [],
+        ),
 
         "monthly_total_label": True,
 
@@ -1301,6 +1372,8 @@ def build_report_data(
         "distribution_photo": (
             distribution_photo
         ),
+
+        "custom_photos": get_optional_user_photos(),
     }
 
 

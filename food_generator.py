@@ -290,18 +290,18 @@ def get_donor_matches(
 # ============================================================
 
 MONTHS_ES = [
-    ("Ene", ["ene", "enero"]),
-    ("Feb", ["feb", "febrero"]),
-    ("Mar", ["mar", "marzo"]),
-    ("Abr", ["abr", "abril"]),
-    ("May", ["may", "mayo"]),
-    ("Jun", ["jun", "junio"]),
-    ("Jul", ["jul", "julio"]),
-    ("Ago", ["ago", "agosto"]),
-    ("Sep", ["sep", "sept", "septiembre"]),
-    ("Oct", ["oct", "octubre"]),
-    ("Nov", ["nov", "noviembre"]),
-    ("Dic", ["dic", "diciembre"]),
+    ("Enero", ["ene", "enero"]),
+    ("Febrero", ["feb", "febrero"]),
+    ("Marzo", ["mar", "marzo"]),
+    ("Abril", ["abr", "abril"]),
+    ("Mayo", ["may", "mayo"]),
+    ("Junio", ["jun", "junio"]),
+    ("Julio", ["jul", "julio"]),
+    ("Agosto", ["ago", "agosto"]),
+    ("Septiembre", ["sep", "sept", "septiembre"]),
+    ("Octubre", ["oct", "octubre"]),
+    ("Noviembre", ["nov", "noviembre"]),
+    ("Diciembre", ["dic", "diciembre"]),
 ]
 
 

@@ -16,18 +16,13 @@
     <div class="cover-content">
       <div class="cover-logos">
         <div class="logo-card"><img src="assets/logos/logo-bap-transparent.png" alt="Banco de Alimentos Panamá"></div>
-        <div class="cover-divider"></div>
-        <div class="logo-card"><img src="assets/logos/logo-fsbv-transparent.png" alt="Fundación Sus Buenos Vecinos" ></div>
+        <div class="logo-card"><img src="assets/logos/logo-bap-transparent.png" alt="Banco de Alimentos Panamá"></div>
       </div>
-      <div class="cover-label">REPORTE DE TRAZABILIDAD DE ALIMENTOS</div>
+      <div class="cover-label">Alimenta. Rescata. Transforma.</div>
       <h1>Reporte de<br><span>Trazabilidad</span></h1>
       <div class="cover-rule"></div>
-      <div class="cover-prepared">REPORTE PREPARADO PARA</div>
       <div class="cover-company{% if company_name|length > 36 %} cover-company-long{% elif company_name|length > 25 %} cover-company-medium{% endif %}">{{ company_name }}</div>
       <div class="cover-period">{{ month_name|default('') }} · {{ year|default('2026') }}</div>
-    </div>
-    <div class="cover-bottom">
-      Banco de Alimentos Panamá · Fundación Sus Buenos Vecinos
     </div>
   </section>
 
@@ -49,7 +44,6 @@
 
     <section class="intro">
       <div class="intro-copy">
-        <div class="eyebrow">IMPACTARON A:</div>
         <h2 class="{% if company_name|length > 36 %}long-name{% endif %}">{{ company_name }}</h2>
       </div>
       <p style="font-family: Arial, Helvetica, sans-serif;">Estimado donante, mediante este reporte queremos darle visibilidad sobre el impacto que hemos logrado, apalancados en los alimentos rescatados recibidos de su organización durante este mes.</p>

@@ -502,7 +502,7 @@ def average_from_series(values: list[float]) -> str:
         return ""
 
     average = sum(valid) / len(valid)
-    return fmt_num(average, 1)
+    return fmt_num(average, 0)
 
 
 def infer_month_from_monthly_value(

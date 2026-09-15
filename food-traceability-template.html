@@ -30,7 +30,6 @@
     <header class="report-header">
       <img class="header-art" src="assets/food/header-banner.png" alt="">
       <div class="header-heading">
-        <span>Reporte de Trazabilidad</span>
         <strong>{{ month_name|default('') }} · {{ year|default('2026') }}</strong>
       </div>
       <img class="header-photo" src="assets/food/donor-circle-photo.png" alt="">
@@ -48,7 +47,7 @@
       <p style="font-family: Arial, Helvetica, sans-serif;">Estimado donante, mediante este reporte queremos darle visibilidad sobre el impacto que hemos logrado, apalancados en los alimentos rescatados recibidos de su organización durante este mes.</p>
     </section>
 
-    <!-- FIVE REQUIRED TOP FIGURES -->
+    <!-- IMPACT METRICS -->
     <section class="hero-metrics {% if not rescued_has_data %}metric-count-low{% endif %}">
       {% if rescued_has_data %}<article class="metric-card metric-green">
         <div class="metric-icon"><img src="assets/food/icon-truck.svg" alt=""></div>
@@ -98,6 +97,16 @@
           {% if population_available %}<div class="metric-sub">que en conjunto alcanzan a una población total de <strong>{{ beneficiaries }}</strong></div>{% endif %}
         </div>
       </article>{% endif %}
+
+      {% if carbon_saved_has_data %}<article class="metric-card metric-carbon">
+        <div class="metric-icon"><img src="assets/food/icon-check.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-head"><div class="metric-kicker">EMISIONES DE CARBONO EVITADAS</div><div class="metric-pct">ESTIMADO</div></div>
+          <div class="metric-number">{{ carbon_saved }}</div>
+          <div class="metric-unit">KG CO₂e</div>
+          <div class="metric-sub">estimación basada en los kg aprovechables de la donación</div>
+        </div>
+      </article>{% endif %}
     </section>
 
     <!-- MONTHLY SUMMARY -->
@@ -105,7 +114,7 @@
     <section class="monthly-section">
       <h2>Resumen de donaciones mensualmente durante el año {{ year }}</h2>
       <div class="monthly-table-wrap">
-        <table class="monthly-table{% if month_labels|length > 8 %} monthly-table-dense{% endif %}">
+        <table class="monthly-table monthly-count-{{ month_labels|length }}">
           <thead>
             <tr><th>MES</th>{% for month in month_labels %}<th>{{ month }}</th>{% endfor %}<th>RESUMEN</th></tr>
           </thead>
@@ -142,36 +151,14 @@
     {% if regional_table %}
     <section class="national-section">
       <div class="national-heading">
-        <h2>Distribución de alimentos · {{ month_name|default('Periodo actual') }}</h2>
-        <div class="month-delivered">
-          <strong>{{ kilos_donated }}</strong>
-          <span>kg</span>
-          <small>TOTAL DEL MES</small>
-        </div>
+        <h2>Distribución de donaciones por ubicación</h2>
       </div>
       <div class="map-stage">
-        {% set short_regions = {
-          'Panamá': 'P. Centro',
-          'Panamá Oeste': 'P. Oeste',
-          'Coclé': 'Coclé',
-          'Colón': 'Colón',
-          'Darién': 'Darién',
-          'Herrera': 'Herrera',
-          'Los Santos': 'Los Santos',
-          'Veraguas': 'Veraguas',
-          'Chiriquí': 'Chiriquí',
-          'Bocas del Toro': 'Bocas',
-          'Comarca Ngäbe Buglé': 'N. Buglé'
-        } %}
         <img class="panama-map" src="assets/food/panama-map.png" alt="Mapa de Panamá">
         {% for point in map_points %}
-        <div class="map-value" style="left:{{ point.x }}%;top:{{ point.y }}%;">
-          <span class="map-region">{{ short_regions.get(point.region, point.region) }}</span>
-          <span class="map-number">{{ point.value }}</span><span class="map-unit">kg</span>
-        </div>
+        <div class="map-value" style="left:{{ point.x }}%;top:{{ point.y }}%;"><span class="map-number">{{ point.value }}</span><span class="map-unit">kg</span></div>
         {% endfor %}
       </div>
-      <div class="map-note">Kilos distribuidos por ubicación durante el mes reportado.</div>
     </section>
     {% else %}
     <section class="no-map-section">
@@ -197,8 +184,8 @@
 
     <footer class="report-footer">
       <div class="footer-heart">♥</div>
-      <div class="footer-copy"><strong>¡Gracias por ser parte de esta cadena de bien!</strong><span>Cada donación es un acto de amor que alimenta sueños y transforma vidas. ¡Gracias por ser la chispa que ilumina el camino hacia un Panamá con #HambreCero!</span></div>
-      <div class="footer-meta">Reporte de Trazabilidad · {{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
+      <div class="footer-copy"><strong>Cada donación es un acto de amor que alimenta sueños y transforma vidas. ¡Gracias por ser la chispa que ilumina el camino hacia un Panamá con #HambreCero!</strong><span></span></div>
+      <div class="footer-meta">{{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
     </footer>
   </section>
 

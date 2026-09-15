@@ -7,7 +7,15 @@ from typing import Any
 
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
-from playwright.async_api import async_playwright
+
+# WeasyPrint on Windows needs the native GTK/Pango DLL directory.
+# Detect the standard MSYS2 UCRT64 installation automatically.
+MSYS2_BIN = Path(r"C:\msys64\ucrt64\bin")
+if MSYS2_BIN.exists():
+    import os
+    os.environ.setdefault("WEASYPRINT_DLL_DIRECTORIES", str(MSYS2_BIN))
+
+from weasyprint import HTML
 
 
 # ============================================================
@@ -25,6 +33,11 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 # Food-report assets are expected here.
 ASSET_DIR = BASE_DIR / "assets" / "food"
+
+# Temporary impact estimate requested for the carbon-savings metric.
+# This is intentionally a rough placeholder until an approved BAP methodology
+# or factor is provided.
+CARBON_KG_CO2E_PER_KG_USABLE = 2.5
 
 
 # ============================================================
@@ -1088,6 +1101,11 @@ def build_report_data(
     waste_tracked = food.get("waste_has_source", False)
     plates_tracked = food.get("plates_has_source", False)
 
+    # Temporary carbon-impact estimate based only on usable (non-waste) food.
+    # 2.5 kg CO2e avoided is used per kg of usable donated food for now.
+    carbon_saved = usable * CARBON_KG_CO2E_PER_KG_USABLE
+    carbon_saved_has_data = usable_tracked and usable > 0
+
     # Some versions of the master sheet store food quality as percentages
     # instead of explicit usable/merma kilogram columns. Derive the kg values
     # from the rescued amount without inventing any unsupported numbers.
@@ -1315,6 +1333,10 @@ def build_report_data(
 
         "meals_served": fmt_num(plates) if plates > 0 else "",
 
+        "carbon_saved": fmt_num(carbon_saved) if carbon_saved_has_data else "",
+
+        "carbon_saved_has_data": carbon_saved_has_data,
+
         "rescued_has_data": rescued > 0,
 
         "usable_has_data": rescued > 0 and usable_tracked,
@@ -1386,121 +1408,46 @@ def build_report_data(
 async def generate_pdf(
     data: dict,
 ) -> None:
-
+    """Render the Jinja HTML report to PDF with WeasyPrint."""
     if not TEMPLATE_PATH.exists():
         raise FileNotFoundError(
             f"Missing template:\n{TEMPLATE_PATH}"
         )
 
     env = Environment(
-        loader=FileSystemLoader(
-            str(BASE_DIR)
-        ),
+        loader=FileSystemLoader(str(BASE_DIR)),
         autoescape=True,
     )
 
-    template = env.get_template(
-        TEMPLATE_FILE
-    )
-
-    rendered_html = template.render(
-        **data
-    )
+    template = env.get_template(TEMPLATE_FILE)
+    rendered_html = template.render(**data)
 
     safe_name = re.sub(
-        r"[^A-Za-z0-9 _-]+",
-        "",
-        data["company_name"],
-    ).strip().replace(
-        " ",
-        "_",
+        r"[^A-Za-z0-9 _-]+", "", data["company_name"]
+    ).strip().replace(" ", "_")
+
+    month_part = data["month_name"] if data["month_name"] else "Annual"
+
+    rendered_path = BASE_DIR / f"._rendered_food_{safe_name}.html"
+    output_path = OUTPUT_DIR / (
+        f"Food_Traceability_{safe_name}_{month_part}_{data['year']}.pdf"
     )
 
-    month_part = (
-        data["month_name"]
-        if data["month_name"]
-        else "Annual"
-    )
-
-    rendered_path = (
-        BASE_DIR
-        / f"._rendered_food_{safe_name}.html"
-    )
-
-    output_path = (
-        OUTPUT_DIR
-        / (
-            f"Food_Traceability_"
-            f"{safe_name}_"
-            f"{month_part}_"
-            f"{data['year']}.pdf"
-        )
-    )
-
-    rendered_path.write_text(
-        rendered_html,
-        encoding="utf-8",
-    )
-
-    async with async_playwright() as p:
-
-        browser = await p.chromium.launch()
-
-        page = await browser.new_page(
-            viewport={
-                "width": 900,
-                "height": 1800,
-            },
-            device_scale_factor=1,
-        )
-
-        # Opening the local HTML file makes relative
-        # CSS and asset references resolve correctly.
-        await page.goto(
-            rendered_path.as_uri(),
-            wait_until="networkidle",
-        )
-
-        await page.evaluate(
-            """
-            document.fonts
-              ? document.fonts.ready
-              : Promise.resolve()
-            """
-        )
-
-        await page.wait_for_function(
-            """
-            Array.from(document.images)
-              .every(img => img.complete)
-            """
-        )
-
-        await page.pdf(
-            path=str(output_path),
-            print_background=True,
-            prefer_css_page_size=True,
-            margin={
-                "top": "0mm",
-                "right": "0mm",
-                "bottom": "0mm",
-                "left": "0mm",
-            },
-        )
-
-        await browser.close()
+    rendered_path.write_text(rendered_html, encoding="utf-8")
 
     try:
-        rendered_path.unlink()
-    except OSError:
-        pass
+        HTML(
+            filename=str(rendered_path),
+            base_url=str(BASE_DIR),
+        ).write_pdf(str(output_path))
+    finally:
+        try:
+            rendered_path.unlink()
+        except OSError:
+            pass
 
-    print(
-        "\n🎉 Food Traceability PDF generated:"
-    )
-    print(
-        f"   {output_path}"
-    )
+    print("\n🎉 Food Traceability PDF generated:")
+    print(f"   {output_path}")
 
 
 # ============================================================

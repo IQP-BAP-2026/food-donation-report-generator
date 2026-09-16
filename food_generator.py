@@ -1,7 +1,9 @@
 import asyncio
 import base64
 import mimetypes
+import os
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -11,8 +13,10 @@ from jinja2 import Environment, FileSystemLoader
 # WeasyPrint on Windows needs the native GTK/Pango DLL directory.
 # Detect the standard MSYS2 UCRT64 installation automatically.
 MSYS2_BIN = Path(r"C:\msys64\ucrt64\bin")
-if MSYS2_BIN.exists():
-    import os
+BUNDLED_WEASY_BIN = Path(getattr(sys, "_MEIPASS", "")) / "weasy_dlls"
+if BUNDLED_WEASY_BIN.exists():
+    os.environ.setdefault("WEASYPRINT_DLL_DIRECTORIES", str(BUNDLED_WEASY_BIN))
+elif MSYS2_BIN.exists():
     os.environ.setdefault("WEASYPRINT_DLL_DIRECTORIES", str(MSYS2_BIN))
 
 from weasyprint import HTML
@@ -22,14 +26,17 @@ from weasyprint import HTML
 # PROJECT CONFIG
 # ============================================================
 
-BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_BASE_DIR = Path(__file__).resolve().parent
+# The GUI sets these paths so the same generator can run from a packaged EXE.
+BASE_DIR = Path(os.environ.get("BAP_REPORT_DATA_DIR", str(DEFAULT_BASE_DIR)))
 
 EXCEL_FILE = BASE_DIR / "MASTER-SHEET.xlsx"
 TEMPLATE_FILE = "food-traceability-template.html"
 TEMPLATE_PATH = BASE_DIR / TEMPLATE_FILE
 
-OUTPUT_DIR = BASE_DIR / "output"
-OUTPUT_DIR.mkdir(exist_ok=True)
+DEFAULT_OUTPUT_DIR = BASE_DIR / "output"
+OUTPUT_DIR = Path(os.environ.get("BAP_REPORT_OUTPUT_DIR", str(DEFAULT_OUTPUT_DIR)))
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Food-report assets are expected here.
 ASSET_DIR = BASE_DIR / "assets" / "food"
@@ -996,17 +1003,17 @@ def extract_monthly_data(
 MAP_POSITIONS = {
     # Province anchors calibrated to the cleaned map asset itself.
     # Coordinates are percentages of the actual 1473x609 map canvas.
-    "Bocas del Toro": (7, 15),
-    "Chiriquí": (8, 46),
-    "Comarca Ngäbe Buglé": (23, 42),
-    "Veraguas": (33, 57),
-    "Coclé": (45, 43),
-    "Herrera": (40, 72),
-    "Los Santos": (47, 83),
-    "Panamá Oeste": (54, 32),
-    "Panamá": (68, 19),
-    "Colón": (56, 13),
-    "Darién": (90, 70),
+    "Bocas del Toro": (7, 20),
+    "Chiriquí": (9, 50),
+    "Comarca Ngäbe Buglé": (23, 47),
+    "Veraguas": (33, 64),
+    "Coclé": (45, 49),
+    "Herrera": (40, 77),
+    "Los Santos": (47, 88),
+    "Panamá Oeste": (54, 40),
+    "Panamá": (70, 26),
+    "Colón": (50, 24),
+    "Darién": (90, 75),
 }
 
 
@@ -1074,7 +1081,7 @@ def build_report_data(
     )
 
     print(
-        f"\n✅ Processing Food Traceability: "
+        f"\nProcessing Food Traceability: "
         f"{company_name}"
     )
 
@@ -1407,7 +1414,7 @@ def build_report_data(
 
 async def generate_pdf(
     data: dict,
-) -> None:
+) -> Path:
     """Render the Jinja HTML report to PDF with WeasyPrint."""
     if not TEMPLATE_PATH.exists():
         raise FileNotFoundError(
@@ -1446,8 +1453,33 @@ async def generate_pdf(
         except OSError:
             pass
 
-    print("\n🎉 Food Traceability PDF generated:")
+    print("\nFood Traceability PDF generated:")
     print(f"   {output_path}")
+    return output_path
+
+
+def generate_report_for_donor(donor_query: str) -> Path:
+    """Generate one donor report and return the created PDF path."""
+    if not EXCEL_FILE.exists():
+        raise FileNotFoundError(f"Excel file not found: {EXCEL_FILE}")
+
+    if not TEMPLATE_PATH.exists():
+        raise FileNotFoundError(f"Food template not found: {TEMPLATE_PATH}")
+
+    df = pd.read_excel(EXCEL_FILE)
+    df = dedupe_columns(df)
+
+    donor_col = get_donor_column(df)
+    if donor_col is None:
+        raise ValueError(
+            "Could not identify a donor column. Expected DONOR, DONANTE, EMPRESA, or COMPANY."
+        )
+
+    data = build_report_data(df, donor_query)
+    if data is None:
+        raise ValueError(f"No donor matching '{donor_query}' was found.")
+
+    return asyncio.run(generate_pdf(data))
 
 
 # ============================================================
@@ -1459,7 +1491,7 @@ def main() -> None:
     if not EXCEL_FILE.exists():
 
         print(
-            f"\n❌ Excel file not found:\n"
+            f"\nExcel file not found:\n"
             f"   {EXCEL_FILE}"
         )
 
@@ -1473,7 +1505,7 @@ def main() -> None:
     if not TEMPLATE_PATH.exists():
 
         print(
-            f"\n❌ Food template not found:\n"
+            f"\nFood template not found:\n"
             f"   {TEMPLATE_PATH}"
         )
 
@@ -1498,7 +1530,7 @@ def main() -> None:
     if donor_col is None:
 
         print(
-            "\n❌ Could not identify a "
+            "\nCould not identify a "
             "DONOR column."
         )
 
@@ -1524,7 +1556,7 @@ def main() -> None:
 
     if not user_input:
         print(
-            "\n❌ Please enter a donor."
+            "\nPlease enter a donor."
         )
         return
 
@@ -1539,7 +1571,7 @@ def main() -> None:
         )
 
         print(
-            f"\n📄 Generating food reports "
+            f"\nGenerating food reports "
             f"for {len(donors)} donors..."
         )
 

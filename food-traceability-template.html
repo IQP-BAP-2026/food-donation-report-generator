@@ -11,7 +11,7 @@
 
   <!-- PAGE 1: TITLE ONLY -->
   <section class="page title-page">
-    <div class="cover-top"></div>
+    
     <div class="cover-food"><img src="assets/food/header-banner.png" alt=""></div>
     <div class="cover-content">
       <div class="cover-logos">
@@ -22,6 +22,14 @@
       <div class="cover-rule"></div>
       <div class="cover-company{% if company_name|length > 36 %} cover-company-long{% elif company_name|length > 25 %} cover-company-medium{% endif %}">{{ company_name }}</div>
       <div class="cover-period">{{ month_name|default('') }} · {{ year|default('2026') }}</div>
+    </div>
+
+        <!-- FIXED BOTTOM PHOTO STRIP -->
+    <div class="opening-photo-strip">
+      <img src="assets/photos/closing_photo1.jpg" alt="">
+      <img src="assets/photos/closing_photo2.jpg" alt="">
+      <img src="assets/photos/closing_photo3.jpg" alt="">
+      <img src="assets/photos/closing_photo4.jpg" alt="">
     </div>
   </section>
 
@@ -99,12 +107,12 @@
       </article>{% endif %}
 
       {% if carbon_saved_has_data %}<article class="metric-card metric-carbon">
-        <div class="metric-icon"><img src="assets/food/icon-check.svg" alt=""></div>
+        <div class="metric-icon"><img src="assets/food/icon-emission.svg" alt=""></div>
         <div class="metric-copy">
           <div class="metric-head"><div class="metric-kicker">EMISIONES DE CARBONO EVITADAS</div><div class="metric-pct">ESTIMADO</div></div>
           <div class="metric-number">{{ carbon_saved }}</div>
           <div class="metric-unit">KG CO₂e</div>
-          <div class="metric-sub">estimación basada en los kg aprovechables de la donación</div>
+          <div class="metric-sub">Esta métrica está incompleta; próximamente se añadirán estimaciones precisas de carbono.</div>
         </div>
       </article>{% endif %}
     </section>
@@ -143,7 +151,6 @@
           </tbody>
         </table>
       </div>
-      <p class="table-note">Promedios calculados únicamente con los meses que contienen datos reportados.</p>
     </section>
     {% endif %}
 
@@ -151,7 +158,7 @@
     {% if regional_table %}
     <section class="national-section">
       <div class="national-heading">
-        <h2>Distribución de donaciones por ubicación</h2>
+        <h2>Distribución de donaciones este mes</h2>
       </div>
       <div class="map-stage">
         <img class="panama-map" src="assets/food/panama-map.png" alt="Mapa de Panamá">
@@ -183,8 +190,8 @@
     </div>
 
     <footer class="report-footer">
-      <div class="footer-heart">♥</div>
-      <div class="footer-copy"><strong>Cada donación es un acto de amor que alimenta sueños y transforma vidas. ¡Gracias por ser la chispa que ilumina el camino hacia un Panamá con #HambreCero!</strong><span></span></div>
+      <div class="footer-heart"></div>
+      <div class="footer-copy"><strong>Cada donación es un acto de amor que alimenta sueños y transforma vidas.</strong><span>¡Gracias por ser la chispa que ilumina el camino hacia un Panamá con #HambreCero!</span></div>
       <div class="footer-meta">{{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
     </footer>
   </section>

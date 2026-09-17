@@ -235,35 +235,50 @@ class ReportApp(tk.Tk):
         return (exact or partial or [None])[0]
 
     def _load_donors(self) -> None:
-        try:
-            import pandas as pd
-            workbook = APP_DATA_DIR / "MASTER-SHEET.xlsx"
-            if not workbook.exists():
-                raise FileNotFoundError("No se encontró MASTER-SHEET.xlsx")
-            self.status.set("Leyendo base de datos...")
-            self.update_idletasks()
-            df = pd.read_excel(workbook)
-            column = self._detect_donor_column(list(df.columns))
-            if column is None:
-                raise ValueError("No se encontró una columna DONOR / DONANTE / EMPRESA / COMPANY.")
-            donors = (
-                df[column]
-                .dropna()
-                .astype(str)
-                .str.strip()
-            )
-            donors = sorted({d for d in donors if d}, key=str.casefold)
-            self.donors = donors
-            self.donor_combo["values"] = donors
-            current = self.selected_donor.get().strip()
-            if current not in donors:
-                self.selected_donor.set(donors[0] if donors else "")
-            self.workbook_status.set(f"MASTER-SHEET.xlsx · {len(donors)} donantes disponibles")
-            self.status.set("Listo")
-        except Exception as exc:
-            self.workbook_status.set("No se pudo leer el Excel")
-            self.status.set("Error al cargar la base de datos")
-            messagebox.showerror(APP_NAME, f"No se pudo leer el Excel.\n\n{exc}")
+            try:
+                import re
+                import pandas as pd
+                workbook = APP_DATA_DIR / "MASTER-SHEET.xlsx"
+                if not workbook.exists():
+                    raise FileNotFoundError("No se encontró MASTER-SHEET.xlsx")
+                self.status.set("Leyendo base de datos...")
+                self.update_idletasks()
+
+                # Inspect available sheets without loading full data yet
+                excel_file = pd.ExcelFile(workbook)
+                pattern = re.compile(r"^MASTER-\d{4}$", re.IGNORECASE)
+                
+                # Find matching sheet names (e.g., MASTER-2024, MASTER-2025, MASTER-2026)
+                matching_sheets = [sheet for sheet in excel_file.sheet_names if pattern.match(sheet)]
+                
+                if not matching_sheets:
+                    raise ValueError("No se encontró una pestaña con el formato 'MASTER-{YEAR}'.")
+                
+                # Pick the most recent year if multiple exist, or simply the first match
+                target_sheet = sorted(matching_sheets)[-1]
+
+                df = pd.read_excel(workbook, sheet_name=target_sheet)
+                column = self._detect_donor_column(list(df.columns))
+                if column is None:
+                    raise ValueError("No se encontró una columna DONOR / DONANTE / EMPRESA / COMPANY.")
+                donors = (
+                    df[column]
+                    .dropna()
+                    .astype(str)
+                    .str.strip()
+                )
+                donors = sorted({d for d in donors if d}, key=str.casefold)
+                self.donors = donors
+                self.donor_combo["values"] = donors
+                current = self.selected_donor.get().strip()
+                if current not in donors:
+                    self.selected_donor.set(donors[0] if donors else "")
+                self.workbook_status.set(f"MASTER-SHEET.xlsx ({target_sheet}) · {len(donors)} donantes disponibles")
+                self.status.set("Listo")
+            except Exception as exc:
+                self.workbook_status.set("No se pudo leer el Excel")
+                self.status.set("Error al cargar la base de datos")
+                messagebox.showerror(APP_NAME, f"No se pudo leer el Excel.\n\n{exc}")
 
     def _filter_donors(self, _event=None) -> None:
         query = self.selected_donor.get().strip().casefold()

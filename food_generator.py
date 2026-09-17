@@ -140,15 +140,45 @@ def fmt_num(value: Any, decimals: int = 0) -> str:
     return f"{number:,.{decimals}f}"
 
 
-def get_optional_user_photos() -> list[str]:
-    """Return optional custom photos that have actually been replaced with real images."""
-    results = []
+def get_bottom_photos() -> list[str]:
+    """Prefer user-supplied custom photos; otherwise use the standard closing photos."""
+    custom_photos = []
     for i in range(1, 4):
         path = BASE_DIR / "assets" / "photos" / f"custom_photo{i}.jpg"
         if path.exists() and path.stat().st_size > 10_000:
-            results.append(str(path.relative_to(BASE_DIR)).replace("\\", "/"))
-    return results
+            custom_photos.append(str(path.relative_to(BASE_DIR)).replace("\\", "/"))
 
+    if custom_photos:
+        return custom_photos
+
+    fallback_photos = []
+    for i in range(1, 5):
+        path = BASE_DIR / "assets" / "photos" / f"closing_photo{i}.jpg"
+        if path.exists():
+            fallback_photos.append(str(path.relative_to(BASE_DIR)).replace("\\", "/"))
+    return fallback_photos
+
+
+def find_master_year_sheet(excel_path: Path) -> tuple[str, int]:
+    """Find the newest worksheet whose name starts with MASTER-YYYY."""
+    excel = pd.ExcelFile(excel_path)
+    matches = []
+    for sheet_name in excel.sheet_names:
+        match = re.match(r"^\s*MASTER-(\d{4})", str(sheet_name), re.IGNORECASE)
+        if match:
+            matches.append((int(match.group(1)), sheet_name))
+
+    if not matches:
+        available = ", ".join(excel.sheet_names)
+        raise ValueError(
+            "No MASTER-{YEAR} worksheet was found. "
+            f"Available worksheets: {available}"
+        )
+
+    year, sheet_name = max(matches, key=lambda item: item[0])
+    print(f"\nUsing master sheet: {sheet_name}")
+    print(f"Report year: {year}")
+    return sheet_name, year
 
 def get_image_base64(relative_path: str) -> str:
     """
@@ -633,6 +663,18 @@ def find_reliable_reporting_period(
             monthly_kilos,
         )
 
+    # If the current-month total does not exactly match a monthly-series cell,
+    # use the latest month that actually contains KG data. This is more robust
+    # for master sheets whose current-month metric is calculated separately.
+    if not month and monthly_kilos:
+        reported_months = [
+            index + 1
+            for index, value in enumerate(monthly_kilos)
+            if safe_float(value) > 0
+        ]
+        if reported_months:
+            month = reported_months[-1]
+
     # Look for an explicit year field only; do not scan arbitrary numeric data.
     if not year:
         for column in df.columns:
@@ -1007,7 +1049,7 @@ MAP_POSITIONS = {
     "Chiriquí": (9, 50),
     "Comarca Ngäbe Buglé": (23, 47),
     "Veraguas": (33, 64),
-    "Coclé": (45, 49),
+    "Coclé": (45, 47),
     "Herrera": (40, 77),
     "Los Santos": (47, 88),
     "Panamá Oeste": (54, 40),
@@ -1052,6 +1094,7 @@ def build_map_points(
 def build_report_data(
     df: pd.DataFrame,
     donor_query: str,
+    report_year: int,
 ) -> dict | None:
 
     donor_col = get_donor_column(df)
@@ -1254,7 +1297,7 @@ def build_report_data(
     # Year
     # --------------------------------------------------------
 
-    year = str(year_number or 2026)
+    year = str(report_year)
 
     # --------------------------------------------------------
     # National delivered kg
@@ -1404,7 +1447,7 @@ def build_report_data(
             distribution_photo
         ),
 
-        "custom_photos": get_optional_user_photos(),
+        "bottom_photos": get_bottom_photos(),
     }
 
 
@@ -1466,7 +1509,8 @@ def generate_report_for_donor(donor_query: str) -> Path:
     if not TEMPLATE_PATH.exists():
         raise FileNotFoundError(f"Food template not found: {TEMPLATE_PATH}")
 
-    df = pd.read_excel(EXCEL_FILE)
+    master_sheet, report_year = find_master_year_sheet(EXCEL_FILE)
+    df = pd.read_excel(EXCEL_FILE, sheet_name=master_sheet)
     df = dedupe_columns(df)
 
     donor_col = get_donor_column(df)
@@ -1475,7 +1519,7 @@ def generate_report_for_donor(donor_query: str) -> Path:
             "Could not identify a donor column. Expected DONOR, DONANTE, EMPRESA, or COMPANY."
         )
 
-    data = build_report_data(df, donor_query)
+    data = build_report_data(df, donor_query, report_year)
     if data is None:
         raise ValueError(f"No donor matching '{donor_query}' was found.")
 
@@ -1515,8 +1559,11 @@ def main() -> None:
         "\nLoading Excel database..."
     )
 
+    master_sheet, report_year = find_master_year_sheet(EXCEL_FILE)
+
     df = pd.read_excel(
-        EXCEL_FILE
+        EXCEL_FILE,
+        sheet_name=master_sheet,
     )
 
     df = dedupe_columns(
@@ -1582,6 +1629,7 @@ def main() -> None:
                 data = build_report_data(
                     df,
                     donor,
+                    report_year,
                 )
 
                 if data:
@@ -1598,6 +1646,7 @@ def main() -> None:
     data = build_report_data(
         df,
         user_input,
+        report_year,
     )
 
     if data is None:

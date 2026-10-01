@@ -1865,27 +1865,27 @@ MAP_POSITIONS = {
 
     # Coordinates are percentages of the actual 1473x609 map canvas.
 
-    "Bocas del Toro": (7, 20),
+    "Bocas del Toro": (7, 16),
 
-    "Chiriquí": (9, 50),
+    "Chiriquí": (9, 46),
 
-    "Comarca Ngäbe Buglé": (23, 47),
+    "Comarca Ngäbe Buglé": (23, 42),
 
-    "Veraguas": (33, 64),
+    "Veraguas": (33, 60),
 
-    "Coclé": (45, 47),
+    "Coclé": (45, 43),
 
-    "Herrera": (40, 77),
+    "Herrera": (40, 73),
 
-    "Los Santos": (47, 88),
+    "Los Santos": (47, 84),
 
-    "Panamá Oeste": (54, 40),
+    "Panamá Oeste": (54, 36),
 
-    "Panamá": (70, 26),
+    "Panamá": (70, 22),
 
-    "Colón": (50, 24),
+    "Colón": (50, 20),
 
-    "Darién": (90, 75),
+    "Darién": (90, 71),
 
 }
 

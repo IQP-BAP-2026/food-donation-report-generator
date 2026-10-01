@@ -31,7 +31,8 @@
   </section>
 
   <!-- PAGE 2: REPORT -->
-  <section class="page report-page">
+  <section class="page report-page{% if not (regional_table and map_points) %} report-page-no-map{% endif %}">
+    <div class="report-content">
     <header class="report-header">
       <img class="header-art" src="assets/food/header-banner.png" alt="">
       <div class="header-heading">
@@ -118,7 +119,42 @@
     {% if month_labels and monthly_data.reported_month_numbers %}
     <section class="monthly-section">
       <h2>Resumen de donaciones mensualmente durante el año {{ year }}</h2>
+      {% if month_labels|length <= 2 %}
+      {% set measures = [
+        ('kilos', 'Kilos totales entregados (kg)', 'kilos_total', 'Total'),
+        ('organizations', 'Organizaciones beneficiarias', 'organizations_average', 'Promedio mensual'),
+        ('population', 'Población alcanzada', 'population_average', 'Promedio mensual')
+      ] %}
       <div class="monthly-table-wrap">
+        <table class="monthly-table monthly-table-short">
+          <thead><tr>
+            <th scope="col">MES</th>
+            {% for key, label, summary, summary_label in measures %}
+            {% if monthly_data.tracked[key] and monthly_data[key ~ '_display'] %}<th scope="col">{{ label }}</th>{% endif %}
+            {% endfor %}
+          </tr></thead>
+          <tbody>
+            {% for month in month_labels %}
+            {% set month_index = loop.index0 %}
+            <tr>
+              <th scope="row">{{ month }}</th>
+              {% for key, label, summary, summary_label in measures %}
+              {% if monthly_data.tracked[key] and monthly_data[key ~ '_display'] %}<td><strong>{{ monthly_data[key ~ '_display'][month_index] }}</strong></td>{% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            <tr class="monthly-summary-row">
+              <th scope="row">RESUMEN</th>
+              {% for key, label, summary, summary_label in measures %}
+              {% if monthly_data.tracked[key] and monthly_data[key ~ '_display'] %}<td class="summary-cell"><strong>{{ monthly_data[summary]|default('0') }}</strong><small>{{ summary_label }}</small></td>{% endif %}
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      {# Reserve space for labels/summary, then add a readable column per month. #}
+      <div class="monthly-table-wrap" style="width:{{ [186, 62 + 22 * (month_labels|length)]|min }}mm;">
         <table class="monthly-table monthly-count-{{ month_labels|length }}{% if month_labels|length > 8 %} monthly-table-dense{% endif %}">
           <thead>
             <tr><th>MES</th>{% for month in month_labels %}<th>{{ month }}</th>{% endfor %}<th>RESUMEN</th></tr>
@@ -148,11 +184,12 @@
           </tbody>
         </table>
       </div>
+      {% endif %}
     </section>
     {% endif %}
 
     <!-- NATIONAL DISTRIBUTION -->
-    {% if regional_table %}
+    {% if regional_table and map_points %}
     <section class="national-section">
       <div class="national-heading">
         <h2>Distribución de alimentos · {{ month_name|default('Periodo actual') }}</h2>
@@ -186,13 +223,18 @@
     </section>
     {% else %}
     <section class="bottom-impact-collage">
+      <div class="impact-thanks-card">
+
       {% if bottom_photos %}
       <div class="bottom-impact-grid count-{{ bottom_photos|length }}">
         {% for photo in bottom_photos %}<img src="{{ photo }}" alt="">{% endfor %}
       </div>
       {% endif %}
+      </div>
     </section>
     {% endif %}
+
+    </div>
 
     <!-- FIXED BOTTOM PHOTO STRIP -->
     <div class="closing-photo-strip">
@@ -203,7 +245,7 @@
     </div>
 
     <footer class="report-footer">
-      <div class="footer-heart">♥</div>
+      <div class="footer-heart" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M12 21 3.4 12.4C-2.2 6.8 5.8-.8 12 5.4 18.2-.8 26.2 6.8 20.6 12.4Z"/></svg></div>
       <div class="footer-copy"><strong>¡Gracias por ser parte de esta cadena de bien!</strong><span>Cada donación es un acto de amor que alimenta sueños y transforma vidas. ¡Gracias por ser la chispa que ilumina el camino hacia un Panamá con #HambreCero!</span></div>
       <div class="footer-meta">{{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
     </footer>

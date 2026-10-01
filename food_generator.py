@@ -90,7 +90,10 @@ ASSET_DIR = BASE_DIR / "assets" / "food"
 
 # or factor is provided.
 
-CARBON_KG_CO2E_PER_KG_USABLE = 2.75
+CARBON_KG_CO2E_PER_KG_FOOD = 2.75
+
+# Preserve the workbook's INT(kg * 3) meal conversion.
+MEALS_PER_KG_FOOD = 3
 
 
 
@@ -1225,7 +1228,7 @@ def extract_food_metrics(
 
     The master workbook has explicit fields for the monthly donation, food
 
-    formula percentages, plate conversion, and beneficiary organizations.
+    formula percentages, food-only donations, and beneficiary organizations.
 
     Those are preferred over broad keyword matching so summary columns such as
 
@@ -1343,15 +1346,19 @@ def extract_food_metrics(
 
 
 
-    # 3) Food plates
-
-    plates_col, plates_value = get_first_positive_value(
-
-        first_row, donor_rows,
-
-        ["{FÓRMULA CONVERSIÓN A PLATOS DE COMIDA}", "FÓRMULA CONVERSIÓN A PLATOS DE COMIDA", "formula conversion to food plates", "platos de comida", "platos comida", "food plates"],
-
+    # 3) Food impact uses only explicitly reported food donations. The old
+    # plate formula and usable kilograms can include non-food donations.
+    food_donated_col = next(
+        (column for column in donor_rows.columns
+         if slug(column) == slug("KG DONADOS ALIMENTOS")),
+        None,
     )
+    food_donated_value = (
+        max(0.0, safe_float(first_row.get(food_donated_col)))
+        if food_donated_col is not None else 0.0
+    )
+    plates_col = food_donated_col
+    plates_value = int(food_donated_value * MEALS_PER_KG_FOOD)
 
 
 
@@ -1436,6 +1443,10 @@ def extract_food_metrics(
         "plates_value": plates_value,
 
         "plates_col": plates_col,
+
+        "food_donated_value": food_donated_value,
+
+        "food_donated_col": food_donated_col,
 
         "orgs_value": orgs_value,
 
@@ -2077,13 +2088,10 @@ def build_report_data(
 
 
 
-    # Temporary carbon-impact estimate based only on usable (non-waste) food.
+    # Apply the existing estimate exclusively to the food-only donation field.
+    carbon_saved = food["food_donated_value"] * CARBON_KG_CO2E_PER_KG_FOOD
 
-    # 2.5 kg CO2e avoided is used per kg of usable donated food for now.
-
-    carbon_saved = usable * CARBON_KG_CO2E_PER_KG_USABLE
-
-    carbon_saved_has_data = usable_tracked and usable > 0
+    carbon_saved_has_data = food["food_donated_col"] is not None and carbon_saved > 0
 
 
 

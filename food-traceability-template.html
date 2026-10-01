@@ -11,32 +11,31 @@
 
   <!-- PAGE 1: TITLE ONLY -->
   <section class="page title-page">
-    <div class="cover-top"></div>
     <div class="cover-food"><img src="assets/food/header-banner.png" alt=""></div>
     <div class="cover-content">
       <div class="cover-logos">
         <div class="logo-card"><img src="assets/logos/logo-bap-transparent.png" alt="Banco de Alimentos Panamá"></div>
-        <div class="cover-divider"></div>
-        <div class="logo-card"><img src="assets/logos/logo-fsbv-transparent.png" alt="Fundación Sus Buenos Vecinos" ></div>
       </div>
-      <div class="cover-label">REPORTE DE TRAZABILIDAD DE ALIMENTOS</div>
+      <div class="cover-label">Alimenta. Rescata. Transforma.</div>
       <h1>Reporte de<br><span>Trazabilidad</span></h1>
       <div class="cover-rule"></div>
-      <div class="cover-prepared">REPORTE PREPARADO PARA</div>
       <div class="cover-company{% if company_name|length > 36 %} cover-company-long{% elif company_name|length > 25 %} cover-company-medium{% endif %}">{{ company_name }}</div>
       <div class="cover-period">{{ month_name|default('') }} · {{ year|default('2026') }}</div>
     </div>
-    <div class="cover-bottom">
-      Banco de Alimentos Panamá · Fundación Sus Buenos Vecinos
+    <div class="cover-footer-logos">
+      <img src="assets/logos/logo-bap-transparent.png" alt="Logo BAP">
+      <img src="assets/logos/footer_logo1.png" alt="Logo aliado 1">
+      <img src="assets/logos/footer_logo2.png" alt="Logo aliado 2">
+      <img src="assets/logos/footer_logo3.png" alt="Logo aliado 3">
     </div>
   </section>
 
   <!-- PAGE 2: REPORT -->
-  <section class="page report-page">
+  <section class="page report-page{% if not (regional_table and map_points) %} report-page-no-map{% endif %}">
+    <div class="report-content">
     <header class="report-header">
       <img class="header-art" src="assets/food/header-banner.png" alt="">
       <div class="header-heading">
-        <span>Reporte de Trazabilidad</span>
         <strong>{{ month_name|default('') }} · {{ year|default('2026') }}</strong>
       </div>
       <img class="header-photo" src="assets/food/donor-circle-photo.png" alt="">
@@ -49,7 +48,6 @@
 
     <section class="intro">
       <div class="intro-copy">
-        <div class="eyebrow">IMPACTARON A:</div>
         <h2 class="{% if company_name|length > 36 %}long-name{% endif %}">{{ company_name }}</h2>
       </div>
       <p style="font-family: Arial, Helvetica, sans-serif;">Estimado donante, mediante este reporte queremos darle visibilidad sobre el impacto que hemos logrado, apalancados en los alimentos rescatados recibidos de su organización durante este mes.</p>
@@ -105,14 +103,59 @@
           {% if population_available %}<div class="metric-sub">que en conjunto alcanzan a una población total de <strong>{{ beneficiaries }}</strong></div>{% endif %}
         </div>
       </article>{% endif %}
+
+      {% if carbon_saved_has_data %}<article class="metric-card metric-carbon">
+        <div class="metric-icon"><img src="assets/food/icon-emission.svg" alt=""></div>
+        <div class="metric-copy">
+          <div class="metric-head"><div class="metric-kicker">EMISIONES DE CARBONO EVITADAS</div><div class="metric-pct">ESTIMADO</div></div>
+          <div class="metric-number">{{ carbon_saved }}</div>
+          <div class="metric-unit">KG CO₂e</div>
+          <div class="metric-sub">estimación basada en los kg de alimentos donados</div>
+        </div>
+      </article>{% endif %}
     </section>
 
     <!-- MONTHLY SUMMARY -->
     {% if month_labels and monthly_data.reported_month_numbers %}
     <section class="monthly-section">
       <h2>Resumen de donaciones mensualmente durante el año {{ year }}</h2>
+      {% if month_labels|length <= 2 %}
+      {% set measures = [
+        ('kilos', 'Kilos totales entregados (kg)', 'kilos_total', 'Total'),
+        ('organizations', 'Organizaciones beneficiarias', 'organizations_average', 'Promedio mensual'),
+        ('population', 'Población alcanzada', 'population_average', 'Promedio mensual')
+      ] %}
       <div class="monthly-table-wrap">
-        <table class="monthly-table{% if month_labels|length > 8 %} monthly-table-dense{% endif %}">
+        <table class="monthly-table monthly-table-short">
+          <thead><tr>
+            <th scope="col">MES</th>
+            {% for key, label, summary, summary_label in measures %}
+            {% if monthly_data.tracked[key] and monthly_data[key ~ '_display'] %}<th scope="col">{{ label }}</th>{% endif %}
+            {% endfor %}
+          </tr></thead>
+          <tbody>
+            {% for month in month_labels %}
+            {% set month_index = loop.index0 %}
+            <tr>
+              <th scope="row">{{ month }}</th>
+              {% for key, label, summary, summary_label in measures %}
+              {% if monthly_data.tracked[key] and monthly_data[key ~ '_display'] %}<td><strong>{{ monthly_data[key ~ '_display'][month_index] }}</strong></td>{% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            <tr class="monthly-summary-row">
+              <th scope="row">RESUMEN</th>
+              {% for key, label, summary, summary_label in measures %}
+              {% if monthly_data.tracked[key] and monthly_data[key ~ '_display'] %}<td class="summary-cell"><strong>{{ monthly_data[summary]|default('0') }}</strong><small>{{ summary_label }}</small></td>{% endif %}
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      {# Reserve space for labels/summary, then add a readable column per month. #}
+      <div class="monthly-table-wrap" style="width:{{ [186, 62 + 22 * (month_labels|length)]|min }}mm;">
+        <table class="monthly-table monthly-count-{{ month_labels|length }}{% if month_labels|length > 8 %} monthly-table-dense{% endif %}">
           <thead>
             <tr><th>MES</th>{% for month in month_labels %}<th>{{ month }}</th>{% endfor %}<th>RESUMEN</th></tr>
           </thead>
@@ -120,57 +163,78 @@
 {% if monthly_data.tracked.kilos and monthly_data.kilos_display %}
             <tr>
               <th>Kilos totales entregados (kg)</th>
-              {% for value in monthly_data.kilos_display %}<td>{{ value }}</td>{% endfor %}
+              {% for value in monthly_data.kilos_display %}<td> <strong>{{ value }}</strong></td>{% endfor %}
               <td class="summary-cell"><strong>{{ monthly_data.kilos_total|default('0') }}</strong><small>Total</small></td>
             </tr>
             {% endif %}
             {% if monthly_data.tracked.organizations and monthly_data.organizations_display %}
             <tr>
               <th>Organizaciones beneficiarias</th>
-              {% for value in monthly_data.organizations_display %}<td>{{ value }}</td>{% endfor %}
+              {% for value in monthly_data.organizations_display %}<td><strong>{{ value }}</strong></td>{% endfor %}
               <td class="summary-cell"><strong>{{ monthly_data.organizations_average|default('0') }}</strong><small>Promedio mensual</small></td>
             </tr>
             {% endif %}
             {% if monthly_data.tracked.population and monthly_data.population_display %}
             <tr>
               <th>Población alcanzada</th>
-              {% for value in monthly_data.population_display %}<td>{{ value }}</td>{% endfor %}
+              {% for value in monthly_data.population_display %}<td><strong>{{ value }}</strong></td>{% endfor %}
               <td class="summary-cell"><strong>{{ monthly_data.population_average|default('0') }}</strong><small>Promedio mensual</small></td>
             </tr>
             {% endif %}
           </tbody>
         </table>
       </div>
-      <p class="table-note">Promedios calculados únicamente con los meses que contienen datos reportados.</p>
+      {% endif %}
     </section>
     {% endif %}
 
     <!-- NATIONAL DISTRIBUTION -->
-    {% if regional_table %}
+    {% if regional_table and map_points %}
     <section class="national-section">
       <div class="national-heading">
-        <h2>Distribución de donaciones por ubicación</h2>
+        <h2>Distribución de alimentos · {{ month_name|default('Periodo actual') }}</h2>
+        <div class="month-delivered">
+          <strong>{{ kilos_donated }}</strong>
+          <span>kg</span>
+          <small>TOTAL DEL MES</small>
+        </div>
       </div>
       <div class="map-stage">
+        {% set short_regions = {
+          'Panamá': 'P. Centro',
+          'Panamá Oeste': 'P. Oeste',
+          'Coclé': 'Coclé',
+          'Colón': 'Colón',
+          'Darién': 'Darién',
+          'Herrera': 'Herrera',
+          'Los Santos': 'Los Santos',
+          'Veraguas': 'Veraguas',
+          'Chiriquí': 'Chiriquí',
+          'Bocas del Toro': 'Bocas',
+          'Comarca Ngäbe Buglé': 'N. Buglé'
+        } %}
         <img class="panama-map" src="assets/food/panama-map.png" alt="Mapa de Panamá">
         {% for point in map_points %}
-        <div class="map-value" style="left:{{ point.x }}%;top:{{ point.y }}%;"><span class="map-number">{{ point.value }}</span><span class="map-unit">kg</span></div>
+        <div class="map-value" style="left:{{ point.x }}%;top:{{ point.y }}%;">
+          <span class="map-number">{{ point.value }}</span><span class="map-unit">kg</span>
+        </div>
         {% endfor %}
       </div>
     </section>
     {% else %}
-    <section class="no-map-section">
-      <div class="no-map-photo-grid">
-        {% for photo in custom_photos %}
-          <img src="{{ photo }}" alt="">
-        {% endfor %}
-        {% if custom_photos|length < 4 %}<img src="assets/photos/closing_photo1.jpg" alt="">{% endif %}
-        {% if custom_photos|length < 3 %}<img src="assets/photos/closing_photo2.jpg" alt="">{% endif %}
-        {% if custom_photos|length < 2 %}<img src="assets/photos/closing_photo3.jpg" alt="">{% endif %}
-        {% if custom_photos|length < 1 %}<img src="assets/photos/closing_photo4.jpg" alt="">{% endif %}
+    <section class="bottom-impact-collage">
+      <div class="impact-thanks-card">
+
+      {% if bottom_photos %}
+      <div class="bottom-impact-grid count-{{ bottom_photos|length }}">
+        {% for photo in bottom_photos %}<img src="{{ photo }}" alt="">{% endfor %}
+      </div>
+      {% endif %}
       </div>
     </section>
     {% endif %}
+
+    </div>
 
     <!-- FIXED BOTTOM PHOTO STRIP -->
     <div class="closing-photo-strip">
@@ -181,9 +245,9 @@
     </div>
 
     <footer class="report-footer">
-      <div class="footer-heart">♥</div>
-      <div class="footer-copy"><strong>¡Gracias por ser parte de esta cadena de bien!</strong><span>Juntos seguimos transformando alimentos en esperanza para miles de familias.</span></div>
-      <div class="footer-meta">Reporte de Trazabilidad · {{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
+      <div class="footer-heart" aria-hidden="true"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#fff" d="M12 21 3.4 12.4C-2.2 6.8 5.8-.8 12 5.4 18.2-.8 26.2 6.8 20.6 12.4Z"/></svg></div>
+      <div class="footer-copy"><strong>¡Gracias por ser parte de esta cadena de bien!</strong><span>Cada donación es un acto de amor que alimenta sueños y transforma vidas. ¡Gracias por ser la chispa que ilumina el camino hacia un Panamá con #HambreCero!</span></div>
+      <div class="footer-meta">{{ company_name }} · {{ month_name|default('') }} {{ year }}</div>
     </footer>
   </section>
 

@@ -1,0 +1,18 @@
+BAP DONOR TRACEABILITY GUI
+
+WINDOWS BUILD
+1. On the BUILD computer, make sure MSYS2 UCRT64 is installed and Pango is installed:
+   pacman -S mingw-w64-ucrt-x86_64-pango
+   The recipient does NOT need MSYS2.
+2. Run build_windows.bat.
+3. The final application is:
+   dist\BAP_Donor_Traceability.exe
+
+The application is designed to be distributed as ONE EXE.
+The recipient does not need Python, pip, or MSYS2.
+
+The GUI keeps editable files under:
+%LOCALAPPDATA%\BAP Donor Traceability
+
+The PDF generator runs in a child process with a 120-second timeout so a native
+PDF rendering problem cannot leave the GUI stuck forever.

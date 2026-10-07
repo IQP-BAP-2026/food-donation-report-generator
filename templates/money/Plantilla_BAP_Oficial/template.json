@@ -1,0 +1,314 @@
+{
+  "name": "Plantilla BAP - Verde y Naranja",
+  "version": "7.4",
+  "description": "Plantilla monetaria basada en los fondos PNG de Canva (V4.0): indicadores nuevos con icono (2 a 5 con fotos, 1 a 4 grandes), logo del programa junto al título, tres diseños de página de cierre (ondas y corazones, marco verde, hexágonos), fuente Avenir incrustable y tamaño de fuente manual opcional.",
+  "entry": "report.html",
+  "stylesheet": "style.css",
+  "cover_variants": [
+    "cover_1",
+    "cover_2"
+  ],
+  "page_types": [
+    {
+      "id": "text_photos",
+      "label": "Texto + 3 fotografías",
+      "photos": 3,
+      "min_photos": 3,
+      "max_photos": 3,
+      "text_min": 40,
+      "text_max": 500
+    },
+    {
+      "id": "mixed_photos",
+      "label": "Texto + fotografías de distintos tamaños",
+      "photos": 3,
+      "min_photos": 3,
+      "max_photos": 3,
+      "text_min": 40,
+      "text_max": 450,
+      "orientations": [
+        "vertical",
+        "cuadrada",
+        "horizontal"
+      ]
+    },
+    {
+      "id": "results_photos",
+      "label": "Resultados + fotografías",
+      "photos": 3,
+      "min_photos": 3,
+      "max_photos": 3,
+      "indicators_min": 1,
+      "indicators_max": 4,
+      "text_min": 30,
+      "text_max": 350
+    },
+    {
+      "id": "results_numbers",
+      "label": "Resultados numéricos",
+      "photos": 0,
+      "min_photos": 0,
+      "max_photos": 0,
+      "indicators_min": 1,
+      "indicators_max": 4,
+      "text_min": 20,
+      "text_max": 300
+    },
+    {
+      "id": "gallery",
+      "label": "Galería de fotografías",
+      "gallery_counts": [
+        6,
+        9,
+        12
+      ],
+      "text_min": 0,
+      "text_max": 0
+    }
+  ],
+  "limits": {
+    "title_min": 3,
+    "title_max": 70,
+    "indicator_value_min": 1,
+    "indicator_value_max": 25,
+    "indicator_description_min": 2,
+    "indicator_description_max": 60,
+    "cover_photos": 4,
+    "closing_photos": 9,
+    "closing_text_min": 5,
+    "closing_text_max": 120,
+    "report_title_min": 3,
+    "report_title_max": 70,
+    "donor_min": 2,
+    "donor_max": 80,
+    "tagline_min": 5,
+    "tagline_max": 100
+  },
+  "backgrounds": {
+    "cover_1.png": "Front Page - Logos Middle.png",
+    "cover_2.png": "Front page - Logos Bottom.png",
+    "text_photos.png": "More text with photos.png",
+    "mixed_photos.png": "Less text more photos.png",
+    "results_photos_2.png": "Text _ 2 number _ photos.png",
+    "results_photos_3.png": "Text _ 3 numbers _ photos.png",
+    "results_photos_4.png": "Text _ 4 numbers _ photos.png",
+    "results_photos_5.png": "EVEN_ Text _ 5 numbers _ photos.png",
+    "results_numbers_1.png": "1 big numbers and text.png",
+    "results_numbers_2.png": "2 big numbers and text.png",
+    "results_numbers_3.png": "3 big numbers and text.png",
+    "results_numbers_4.png": "4 big numbers and text.png",
+    "gallery_6.png": "Photo gallery - 6.png",
+    "gallery_9.png": "Photo gallery - 9.png",
+    "gallery_12.png": "Photo gallery - 12.png",
+    "closing_a.png": "Closing Page.png",
+    "closing_b.png": "17.png",
+    "closing_c.png": "18.png"
+  },
+  "layout_policy": {
+    "page_size": "A4 portrait 210x297mm",
+    "adaptive_text": "El texto se autoajusta al tamaño más grande que cabe en su zona. Opcionalmente el usuario puede fijar el tamaño a mano (con advertencia): esas cajas se omiten del autoajuste y pueden cortarse.",
+    "exclusion_zones": "Las zonas decorativas superiores quedan fuera de las cajas dinámicas.",
+    "overflow": "Todo contenido dinámico se recorta a su zona y la validación bloquea entradas fuera de límites.",
+    "closing_grid": "9 fotos obligatorias en 3x3, dentro del A4."
+  },
+  "kpi_boxes": {
+    "results_photos": {
+      "5": [
+        [
+          7.9,
+          153.0,
+          59.1,
+          25.2
+        ],
+        [
+          76.5,
+          153.1,
+          59.1,
+          25.0
+        ],
+        [
+          145.1,
+          153.1,
+          59.1,
+          25.0
+        ],
+        [
+          42.8,
+          188.0,
+          59.3,
+          25.0
+        ],
+        [
+          110.2,
+          187.9,
+          59.1,
+          25.2
+        ]
+      ],
+      "4": [
+        [
+          28.5,
+          144.8,
+          71.0,
+          30.0
+        ],
+        [
+          110.8,
+          145.0,
+          70.7,
+          29.9
+        ],
+        [
+          30.0,
+          183.9,
+          70.7,
+          30.1
+        ],
+        [
+          110.6,
+          183.9,
+          70.9,
+          30.1
+        ]
+      ],
+      "3": [
+        [
+          22.1,
+          141.1,
+          76.8,
+          32.5
+        ],
+        [
+          111.1,
+          141.1,
+          76.6,
+          32.5
+        ],
+        [
+          67.9,
+          184.9,
+          76.5,
+          32.4
+        ]
+      ],
+      "2": [
+        [
+          22.1,
+          171.8,
+          76.8,
+          32.4
+        ],
+        [
+          111.1,
+          171.8,
+          76.6,
+          32.4
+        ]
+      ]
+    },
+    "results_numbers": {
+      "1": [
+        [
+          50.0,
+          160.0,
+          110.0,
+          64.0
+        ]
+      ],
+      "2": [
+        [
+          14.0,
+          158.0,
+          88.0,
+          60.0
+        ],
+        [
+          108.0,
+          158.0,
+          88.0,
+          60.0
+        ]
+      ],
+      "3": [
+        [
+          14.0,
+          136.0,
+          88.0,
+          50.0
+        ],
+        [
+          108.0,
+          136.0,
+          88.0,
+          50.0
+        ],
+        [
+          61.0,
+          196.0,
+          88.0,
+          50.0
+        ]
+      ],
+      "4": [
+        [
+          14.0,
+          136.0,
+          88.0,
+          50.0
+        ],
+        [
+          108.0,
+          136.0,
+          88.0,
+          50.0
+        ],
+        [
+          14.0,
+          196.0,
+          88.0,
+          50.0
+        ],
+        [
+          108.0,
+          196.0,
+          88.0,
+          50.0
+        ]
+      ]
+    }
+  },
+  "fonts": {
+    "family": "BAP Avenir",
+    "folder": "fonts",
+    "note": "Copie aquí AvenirLTPro-Roman y AvenirLTPro-Heavy (.otf/.ttf/.woff2). Ver LEEME_FUENTES.txt."
+  },
+  "closing_styles": {
+    "closing_a": {
+      "name": "Ondas y corazones",
+      "photos": 5
+    },
+    "closing_b": {
+      "name": "Marco verde y franjas",
+      "photos": 5
+    },
+    "closing_c": {
+      "name": "Hexágonos",
+      "photos": 3
+    }
+  },
+  "icons": {
+    "library": "Carpeta editable en %LOCALAPPDATA%\\BAP Report Generator V2.8\\iconos (se abre desde el editor de página). Iconos incluidos: assets/icons.",
+    "formats": [
+      "png",
+      "jpg",
+      "jpeg",
+      "webp",
+      "svg"
+    ],
+    "note": "Los iconos se muestran en blanco dentro del círculo de color (opción por página)."
+  },
+  "palette": {
+    "verde_marca": "#7BC24D",
+    "nota": "Todos los verdes del informe usan #7BC24D (o tintes suyos). Los logos de programas conservan sus propios colores."
+  }
+}

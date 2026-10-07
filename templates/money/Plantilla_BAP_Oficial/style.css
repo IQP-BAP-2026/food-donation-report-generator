@@ -1,0 +1,134 @@
+/* ==========================================================================
+   Plantilla BAP - Verde y Naranja  (V4.0)
+   A4 vertical. Los fondos Canva (PNG) llevan el diseño; aquí solo se colocan
+   textos, logos, iconos y fotos, en milímetros sobre la hoja A4. Posiciones
+   medidas de la guía de Canva (graphic-10-1.pdf). Las tarjetas de indicadores
+   vienen de template.json ("kpi_boxes").
+   ========================================================================== */
+:root{--font:"BAP Avenir","Avenir LT Pro","Avenir Next LT Pro","Avenir Next",Avenir,"Nunito Sans",Mulish,Arial,Helvetica,sans-serif;
+  --serif:"BAP Serif","DM Serif Display","Playfair Display","Libre Baskerville",Georgia,"Times New Roman",serif;
+  --green:#7BC24D;--orange:#F26B14;--ink:#333E48}
+@page{size:A4 portrait;margin:0}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:var(--font);color:var(--ink);font-weight:400;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+/* Las palabras nunca se parten ni se separan con guion: si no caben en la línea, pasan completas a la siguiente. */
+*{hyphens:none;-webkit-hyphens:none;overflow-wrap:normal;word-break:normal}
+.page{width:210mm;height:297mm;position:relative;overflow:hidden;background:#fff;page-break-after:always;break-after:page}
+.page:last-child{page-break-after:auto;break-after:auto}
+.page-bg{position:absolute;left:0;top:0;width:210mm;height:297mm;object-fit:fill;z-index:0}
+.page>*:not(.page-bg){position:absolute;z-index:1}
+
+/* ---------- Cajas de texto autoajustables (el tamaño lo fija el script de report.html) ---------- */
+.fit{display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;min-width:0;min-height:0}
+.fit-inner{width:100%}
+.fit-inner.nowrap{width:auto;white-space:nowrap}
+
+/* ---------- Logo BAP (arriba a la izquierda; centro tomado de la guía) ---------- */
+.bap-logo{left:17.6mm;top:20.4mm;width:20mm;height:20mm;object-fit:contain}
+.layout-text-photos .bap-logo,.layout-mixed-photos .bap-logo{left:18.9mm;top:25.4mm}
+
+/* ---------- Título (+ logo del programa) y texto ---------- */
+.title-row{left:18mm;right:18mm;top:53.9mm;height:22mm;display:flex;align-items:center;justify-content:center;gap:6mm}
+.title-row .title{position:static;flex:0 1 auto;min-width:0;height:100%;font-weight:700;letter-spacing:1.2px;line-height:1.12}
+.title-row .title .fit-inner{width:auto;max-width:100%;text-wrap:balance}
+.program-logo{position:static;flex:none;height:22mm;max-width:55mm;width:auto;object-fit:contain}
+.gallery-row{top:57.2mm}
+.title-xl{font-size:27pt}.title-lg{font-size:23pt}.title-md{font-size:20pt}.title-sm{font-size:17pt}
+.body{left:24mm;right:24mm;top:85mm;line-height:1.42;align-items:flex-start;color:var(--ink)}
+.body .fit-inner{white-space:pre-line}
+.body-xl{font-size:19pt}.body-lg{font-size:16pt}.body-md{font-size:14pt}.body-sm{font-size:12pt}.body-xs{font-size:10.5pt}
+.layout-text-photos .body{height:111mm;align-items:flex-start}
+.layout-mixed-photos .body{height:44mm;align-items:flex-start}
+.rp-n5 .body{height:62mm}.rp-n4 .body{height:53mm}.rp-n3 .body{height:50mm}.rp-n2 .body{height:80mm}
+.rn-n1 .body,.rn-n2 .body{height:68mm}.rn-n3 .body,.rn-n4 .body{height:45mm}
+
+/* ---------- Fotos ---------- */
+.photos3 img,.mixed img,.gallery img,.cphotos img,.cover-photos img,.hexphotos img{display:block;width:100%;height:100%;min-width:0;min-height:0;object-fit:cover;object-position:50% 32%}
+.photos3 img,.mixed img,.gallery img,.cphotos img{border-radius:2mm}
+.layout-text-photos .photos3{left:13.8mm;right:13.7mm;top:203.9mm;height:55.7mm;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14.6mm;overflow:hidden}
+.layout-results-photos .photos3{left:10.1mm;right:8.2mm;top:225.6mm;height:58.4mm;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15.3mm;overflow:hidden}
+.mixed{left:0;top:0;width:210mm;height:297mm}
+.mixed img{position:absolute}
+.mixed .p1{left:13.1mm;top:135.7mm;width:75.4mm;height:146.3mm}
+.mixed .p2{left:106.8mm;top:135.7mm;width:75.3mm;height:75.2mm}
+.mixed .p3{left:94.2mm;top:222mm;width:100.7mm;height:60mm}
+
+/* ---------- Indicadores: tarjetas con icono, valor y descripción ---------- */
+.kpis{left:0;top:0;width:210mm;height:297mm;pointer-events:none}
+.kpi-card{position:absolute;display:flex;align-items:center;padding:0 var(--pad);border-radius:5mm;overflow:visible;
+  box-shadow:0 1.3mm 3mm rgba(40,70,40,.20);border:.2mm solid rgba(0,0,0,.07)}
+.kc-green{background:#ECF6E6}.kc-orange{background:#FFF0E4}.kc-blue{background:#EDF4FB}
+.kpi-icon{flex:none;width:var(--d);height:var(--d);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.kc-green .kpi-icon{background:var(--green)}.kc-orange .kpi-icon{background:#ED6913}.kc-blue .kpi-icon{background:#2D6E9A}
+.kpi-icon img{display:block;width:58%;height:58%;object-fit:contain}
+.kpi-icon img.white{filter:brightness(0) invert(1)}
+.kpi-text{flex:1;min-width:0;margin-left:var(--gap);display:flex;flex-direction:column;justify-content:center}
+.kpi-text .fit{width:100%;flex:none;justify-content:flex-start;text-align:left}
+.kpi-value{height:var(--vh);font-weight:700;line-height:1.05;font-size:16pt}
+.kpi-label{height:var(--lh);line-height:1.18;margin-top:.8mm;font-size:8pt;font-weight:400;color:#1F2933}
+.kc-green .kpi-value,.kc-blue .kpi-value{color:var(--orange)}
+.kc-orange .kpi-value{color:#1F2933}
+.kpi-card.noicon{justify-content:center}
+.kpi-card.noicon .kpi-text{margin-left:0;align-items:center;flex:none;width:100%}
+.kpi-card.noicon .kpi-text .fit{justify-content:center;text-align:center}
+
+/* ---------- Galería ---------- */
+.gallery{display:grid;overflow:hidden}
+.gallery.g6{left:38mm;top:88.4mm;width:136.5mm;height:204.5mm;column-gap:10.7mm;row-gap:7.6mm;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+.gallery.g9{left:8.2mm;top:89.3mm;width:193.6mm;height:196mm;column-gap:6.4mm;row-gap:7.2mm;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+.gallery.g12{left:11.3mm;top:106mm;width:185.9mm;height:138mm;column-gap:2.5mm;row-gap:3.2mm;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+
+/* ---------- Portada (título y año centrados) ---------- */
+.cover-title{left:40mm;top:30mm;width:130mm;height:46mm;justify-content:center;align-items:center;text-align:center;color:var(--green);line-height:1.12;letter-spacing:2.5px;font-weight:700}
+.cover-title-xl{font-size:32pt}.cover-title-lg{font-size:26pt}.cover-title-sm{font-size:20pt}
+.cover-year{left:40mm;top:80mm;width:130mm;height:22mm;display:flex;align-items:center;justify-content:center;color:var(--green);font-size:34pt;font-weight:700;letter-spacing:4px;line-height:1}
+.donor-area{left:20mm;right:20mm;top:151.5mm;height:53mm;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3mm;text-align:center}
+.cover_2 .donor-area{top:139.7mm;height:46mm}
+.donor-logo{display:block;max-height:34mm;width:auto;height:auto;object-fit:contain}
+.cover_2 .donor-logo{max-height:27mm}
+.donor-name{width:170mm;height:14mm;font-weight:700;letter-spacing:1.5px;line-height:1.15;font-size:16pt;flex:none}
+.partners{left:0;width:210mm;padding:0 8mm;display:flex;justify-content:space-evenly;align-items:center}
+.partners img{position:relative;display:block;flex:none;object-fit:contain}
+.pl-bap{width:15mm;height:15mm}.pl-global{width:42mm;height:12.5mm}.pl-camara{width:31mm;height:14mm}.pl-sumarse{width:31mm;height:14mm}
+.cover-photos{left:0;right:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1mm;overflow:hidden}
+.tagline{left:12mm;right:12mm;top:279.8mm;height:9mm;font-weight:700;letter-spacing:1.4px;font-size:10.5pt;color:#2D481C}
+.cover_1 .partners{top:208mm;height:20mm}.cover_1 .cover-photos{top:229.3mm;height:49.1mm}
+.cover_2 .cover-photos{top:188mm;height:49.5mm}.cover_2 .partners{top:242.3mm;height:20mm}
+
+/* ---------- Cierre A (ondas y corazones) y B (marco verde) ---------- */
+.closing-title{top:54.5mm;height:22mm;font-weight:700;letter-spacing:1.3px;line-height:1.1}
+.closing-title-xl{font-size:27pt}.closing-title-lg{font-size:22pt}.closing-title-sm{font-size:18pt}
+.closing_a .bap-logo{left:17.6mm;top:20.4mm}
+.closing_a .closing-title{left:34mm;right:34mm}
+.closing-year{display:flex;align-items:center;font-size:14pt;letter-spacing:3px;font-weight:400;color:var(--ink)}
+.closing_a .closing-year{right:21.4mm;top:26.4mm;height:8mm;width:30mm;justify-content:flex-end}
+.closing_a .c4{left:22.7mm;top:89.3mm;width:78.9mm;height:53.7mm}
+.closing_a .c5{left:111.8mm;top:89.3mm;width:78.9mm;height:53.7mm}
+.closing_a .c1{left:22.7mm;top:150.6mm;width:67.6mm;height:132.2mm}
+.closing_a .c2{left:117.5mm;top:150.6mm;width:67.5mm;height:67.4mm}
+.closing_a .c3{left:111.8mm;top:229.2mm;width:78.9mm;height:53.7mm}
+.closing_b .bap-logo{left:37.9mm;top:25.2mm}
+.closing_b .closing-title{left:30mm;right:30mm}
+.closing_b .closing-year{right:35.6mm;top:260mm;height:8mm;width:30mm;justify-content:flex-end}
+.closing_b .c4{left:36.5mm;top:87.3mm;width:64.9mm;height:44.3mm}
+.closing_b .c5{left:109.9mm;top:87.3mm;width:64.9mm;height:44.3mm}
+.closing_b .c1{left:36.5mm;top:137.8mm;width:64.9mm;height:108.9mm}
+.closing_b .c2{left:109.9mm;top:137.8mm;width:64.9mm;height:55.6mm}
+.closing_b .c3{left:109.9mm;top:202.4mm;width:64.9mm;height:44.3mm}
+.cphotos{left:0;top:0;width:210mm;height:297mm}
+.cphotos img{position:absolute}
+
+/* ---------- Cierre C (hexágonos) ---------- */
+.closing_c .bap-logo{left:166.6mm;top:8.9mm}
+.closing-year-c{left:16.7mm;top:16mm;width:150mm;height:46mm;justify-content:flex-start;text-align:left;font-family:var(--serif);color:var(--green);font-weight:400;line-height:1}
+.closing-year-c .fit-inner{text-align:left}
+.closing-title-c{left:16.7mm;top:62mm;width:176mm;height:32mm;justify-content:flex-start;align-items:flex-start;text-align:left;font-family:var(--serif);color:#545454;font-weight:400;line-height:1.1}
+.closing-title-c .fit-inner{text-align:left}
+.closing-title-xl{font-size:34pt}
+.hexphotos{left:0;top:0;width:210mm;height:297mm}
+.hexphotos img{position:absolute;border-radius:0;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.hexphotos .h1{left:11.7mm;top:129.5mm;width:97.2mm;height:84.2mm}
+.hexphotos .h2{left:96.1mm;top:100.2mm;width:80.6mm;height:69.8mm}
+.hexphotos .h3{left:96.1mm;top:172.4mm;width:80.6mm;height:69.8mm}
+/* Con logo de programa en las páginas con franjas: grupo título+logo entre 24 y 186 mm (distancia a las franjas >= 8 mm con los fondos nuevos). */
+.layout-text-photos .title-row.with-logo,.layout-mixed-photos .title-row.with-logo,.layout-results-photos .title-row.with-logo{left:24mm;right:24mm}

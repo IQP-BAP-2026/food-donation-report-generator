@@ -1,0 +1,5 @@
+# Plantilla monetaria 7.2 (acumulativa: incluye 7.1; el código del programa sigue siendo V4.3)
+
+- **Verde de la marca #7BC24D en todo el informe:** círculo verde de los iconos de indicadores (antes #2F8E44) y su tarjeta (tinte del mismo verde); las ondas del fondo de la primera página de cierre (`backgrounds\\closing_a.png`) se volvieron a teñir al verde de la marca (antes eran de un verde lima, tono 92° frente a 96° de la marca). El resto de los fondos ya usaba #7BC24D o tintes suyos (verificado por muestreo de píxeles). Los logos de programas conservan sus colores. El texto del eslogan sigue en un verde muy oscuro por legibilidad sobre el degradado verde claro.
+- **Letra:** los títulos y cifras pasan de peso 800 a 700. En un equipo sin Avenir, Windows usaba "Arial Black" (muy pesada y ancha) para el 800; con 700 usa Arial Bold. Con Avenir instalado se sigue usando Avenir Heavy.
+- Incluye los cambios de la 7.1 (portada: nombre arriba y logo debajo; espacio entre título y texto; logos de programa pegados al título).

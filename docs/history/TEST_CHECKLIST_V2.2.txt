@@ -1,0 +1,83 @@
+BAP V2.2 INTEGRATION TEST CHECKLIST
+
+[ ] App opens from dist folder
+[ ] Food workflow opens
+[ ] Included Excel detects MASTER-2025
+[ ] UI displays report year 2025
+[ ] Donor list loads
+[ ] Food PDF generates for donor #1
+[ ] Food PDF generates for donor #2
+[ ] Food PDF content matches Cam's expected functionality
+[ ] Replacing Excel with a valid MASTER-{YEAR} workbook updates year
+[ ] Invalid workbook without MASTER-{YEAR} shows a useful error
+[ ] Money workflow opens
+[ ] Add page works
+[ ] Edit page works
+[ ] Hide / Include works
+[ ] Delete page works
+[ ] Page photos work
+[ ] Closing photos work
+[ ] Save / reopen draft works
+[ ] Preview works
+[ ] Final PDF generation works
+[ ] Template 1 (Irobosa prototype) renders
+[ ] Template 2 placeholder renders
+[ ] Template 3 placeholder renders
+[ ] Template 4 placeholder renders
+[ ] Logs can be opened from Ayuda
+
+V3.1 - ALIMENTOS (motor del compañero)
+[ ] Alimentos abre con el mismo estilo que Monetario
+[ ] Lista de donantes carga desde MASTER-SHEET.xlsx (hoja MASTER-{AÑO} más reciente)
+[ ] Escribir en el cuadro de donante filtra la lista
+[ ] Actualizar Excel reemplaza la base y actualiza la lista
+[ ] Fotos: reemplazar una foto de cierre y comprobar que aparece en el PDF
+[ ] GENERAR REPORTE crea el PDF en Documentos\BAP Donor Traceability Reports y ofrece abrirlo
+[ ] El PDF de un donante coincide con el generado por la aplicación original del compañero (mismo donante, mismo Excel)
+[ ] Monetario sigue generando (vista previa y PDF final)
+
+V3.2 - ALIMENTOS (interfaz restaurada)
+[ ] Cargar Excel muestra "Hoja / Año / N donantes"
+[ ] Se pueden seleccionar varios donantes
+[ ] Seleccionar 6 u 8 fotos muestra aviso y no las acepta; 7 sí
+[ ] Modo "7 fotos por donante": falta un donante -> el programa lo indica al generar
+[ ] Vista previa abre _VISTA_PREVIA_ALIMENTOS.pdf
+[ ] GENERAR PDF con 2+ donantes crea un PDF por donante y muestra progreso
+[ ] Guardar borrador y Abrir borrador restauran Excel, donantes y fotos
+[ ] El PDF de un donante coincide con el de la aplicación original del compañero
+
+V4.0 - MONETARIOS
+[ ] Portada: logo del programa (opcional) y quitar
+[ ] Página con fotos: 2, 3, 4 y 5 indicadores; cada uno con icono distinto
+[ ] "Subir…" copia el icono a la carpeta de iconos y queda seleccionado; "Abrir carpeta de iconos" abre la carpeta
+[ ] Un icono puesto a mano en la carpeta aparece en la lista (abrir la lista de nuevo)
+[ ] Página de números grandes: 1, 2, 3 y 4 indicadores
+[ ] Cierre: los 3 diseños; con un número de fotos incorrecto se rechaza
+[ ] Un borrador de V3.x abre; pide fotos de cierre nuevas
+V4.0 - ALIMENTOS
+[ ] El PDF de un donante coincide con el de la aplicación actualizada del compañero
+[ ] En un equipo con V3.2 instalado, el PDF usa ya la plantilla nueva
+
+V4.1
+[ ] Página con logo del programa: título + logo centrados juntos; sin logo: título centrado solo
+[ ] "Usar en todas las páginas de contenido" copia el logo a las demás páginas (no a galerías)
+[ ] Un texto con palabras largas pasa palabras completas a la línea siguiente (sin guiones ni cortes)
+[ ] Cierre de hexágonos: contornos y mensaje en gris, año en verde
+
+V4.2
+[ ] Un logo con márgenes amplios se ve grande (portada y título de página)
+[ ] Un logo ya recortado se ve igual que antes o un poco mayor
+
+V4.3
+[ ] En el editor de página, la lista muestra los 4 logos y al elegir uno aparece junto al título
+[ ] "Usar otro archivo…" muestra el aviso; "Abrir el manual" abre el PDF; "Cancelar" no abre el selector
+[ ] Un PNG copiado a la carpeta de logos aparece en la lista
+
+Plantilla 7.1
+[ ] Portada 1 y 2: nombre del donante arriba, logo debajo
+[ ] Todas las páginas: separación visible entre título y texto (título de 1 y de 2 líneas, con y sin logo)
+[ ] Logo del programa pegado al título; con un archivo dañado la página sale sin logo y con el título centrado
+
+Plantilla 7.2
+[ ] Los verdes del informe se ven iguales (títulos, franjas, círculos de iconos, ondas del cierre A)
+[ ] Los títulos ya no se ven con la letra extra gruesa (Arial Black)

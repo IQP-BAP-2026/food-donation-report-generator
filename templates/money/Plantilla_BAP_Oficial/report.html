@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><style>{{font_css|safe}}
+{{css|safe}}</style></head><body>
+{% macro bg(name) %}<img class="page-bg" src="{{ backgrounds[name] }}" alt="">{% endmacro %}
+{# fit(): caja de texto autoajustable. Si "fixed" trae un tamaño (pt) elegido a mano, se usa ese y el ajuste automático se omite. #}
+{% macro fit(cls, text, mx, mn, fixed=none) %}<div class="fit {{cls}}{% if fixed %} fixed{% endif %}" data-max="{{mx}}" data-min="{{mn}}"{% if fixed %} style="font-size:{{fixed}}pt"{% endif %}><div class="fit-inner">{{text}}</div></div>{% endmacro %}
+{% macro kpis(p) %}<div class="kpis">{% for it in p.kpi_items %}<div class="kpi-card kc-{{it.color}}{% if not it.icon %} noicon{% endif %}" style="left:{{it.x}}mm;top:{{it.y}}mm;width:{{it.w}}mm;height:{{it.h}}mm;--d:{{it.d}}mm;--pad:{{it.pad}}mm;--gap:{{it.gap}}mm;--vh:{{it.vh}}mm;--lh:{{it.lh}}mm">{% if it.icon %}<div class="kpi-icon"><img{% if p.icons_white %} class="white"{% endif %} src="{{it.icon}}" alt=""></div>{% endif %}<div class="kpi-text"><div class="fit kpi-value{% if p.manual.kpi_value %} fixed{% endif %}" data-max="{{p.kpi_vmax}}" data-min="5"{% if p.manual.kpi_value %} style="font-size:{{p.manual.kpi_value}}pt"{% else %} data-shrink="1"{% endif %}><div class="fit-inner nowrap">{{it.value}}</div></div><div class="fit kpi-label{% if p.manual.kpi_label %} fixed{% endif %}" data-max="{{p.kpi_lmax}}" data-min="5"{% if p.manual.kpi_label %} style="font-size:{{p.manual.kpi_label}}pt"{% else %} data-shrink="1"{% endif %}><div class="fit-inner">{{it.label}}</div></div></div></div>{% endfor %}</div>{% endmacro %}
+{# title_row(): título (autoajustable) + logo del programa opcional, agrupados y centrados en la página #}
+{% macro title_row(p,cls) %}<div class="title-row {{cls}}{% if p.show_logo %} with-logo{% endif %}">{{ fit('title '+(p.title_class or ''), p.title, 30, 15, p.manual.title) }}{% if p.show_logo %}<img class="program-logo" src="{{p.program_logo_uri}}" alt="" onerror="var r=this.closest('.title-row');this.remove();if(r){r.classList.remove('with-logo');var t=r.querySelector('.title');if(t){t.style.width='';t.style.flex='';}}">{% endif %}</div>{% endmacro %}
+
+{# ---------------- PORTADA ---------------- #}
+<section class="page cover {{cover_variant|default('cover_1')}}">{{bg((cover_variant|default('cover_1'))+'.png')}}
+  {{ fit('cover-title '+cover_title_class, report_title, 38, 18, manual.cover_title) }}
+  <div class="cover-year">{{year}}</div>
+  <div class="donor-area">{{ fit('donor-name', donor, 22, 11, manual.donor) }}{% if donor_logo %}<img class="donor-logo" src="{{donor_logo}}" style="max-width:{{donor_logo_max_mm}}mm" alt="">{% endif %}</div>
+  <div class="partners"><img class="pl-bap" src="{{logos.bap}}" alt=""><img class="pl-global" src="{{logos.global}}" alt=""><img class="pl-camara" src="{{logos.camara}}" alt=""><img class="pl-sumarse" src="{{logos.sumarse}}" alt=""></div>
+  <div class="cover-photos">{% for x in cover_photos %}<img src="{{x}}" alt="">{% endfor %}</div>
+  {{ fit('tagline', tagline, 12.5, 8, manual.tagline) }}
+</section>
+
+{# ---------------- PÁGINAS DE CONTENIDO ---------------- #}
+{% for p in pages %}
+{% if p.type=='text_photos' %}
+<section class="page layout-text-photos">{{bg('text_photos.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  {{ title_row(p,'') }}{{ fit('body '+p.text_class, p.text, 20, 10, p.manual.text) }}
+  <div class="photos3">{% for x in p.photos %}<img src="{{x}}" alt="">{% endfor %}</div>
+</section>
+{% elif p.type=='mixed_photos' %}
+<section class="page layout-mixed-photos">{{bg('mixed_photos.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  {{ title_row(p,'') }}{{ fit('body '+p.text_class, p.text, 20, 10, p.manual.text) }}
+  <div class="mixed"><img class="p1" src="{{p.photos[0]}}" alt=""><img class="p2" src="{{p.photos[1]}}" alt=""><img class="p3" src="{{p.photos[2]}}" alt=""></div>
+</section>
+{% elif p.type=='results_photos' %}
+<section class="page layout-results-photos rp-n{{p.indicator_count}}">{{bg('results_photos_'+(p.indicator_count|string)+'.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  {{ title_row(p,'') }}{{ fit('body '+p.text_class, p.text, 20, 10, p.manual.text) }}
+  {{ kpis(p) }}
+  <div class="photos3">{% for x in p.photos %}<img src="{{x}}" alt="">{% endfor %}</div>
+</section>
+{% elif p.type=='results_numbers' %}
+<section class="page layout-results-numbers rn-n{{p.indicator_count}}">{{bg('results_numbers_'+(p.indicator_count|string)+'.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  {{ title_row(p,'') }}{{ fit('body '+p.text_class, p.text, 22, 10, p.manual.text) }}
+  {{ kpis(p) }}
+</section>
+{% elif p.type=='gallery' %}
+<section class="page layout-gallery">{{bg('gallery_'+(p.photo_count|string)+'.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  {{ title_row(p,'gallery-row') }}
+  <div class="gallery g{{p.photo_count}}">{% for x in p.photos %}<img src="{{x}}" alt="">{% endfor %}</div>
+</section>
+{% endif %}
+{% endfor %}
+
+{# ---------------- CIERRE (3 diseños) ---------------- #}
+{% if closing_style=='closing_a' or closing_style=='closing_b' %}
+<section class="page closing {{closing_style}}">{{bg(closing_style+'.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  <div class="closing-year">{{year}}</div>
+  {{ fit('closing-title '+closing_title_class, closing_title, 30, 14, manual.closing) }}
+  <div class="cphotos"><img class="c1" src="{{closing_photos[0]}}" alt=""><img class="c2" src="{{closing_photos[1]}}" alt=""><img class="c3" src="{{closing_photos[2]}}" alt=""><img class="c4" src="{{closing_photos[3]}}" alt=""><img class="c5" src="{{closing_photos[4]}}" alt=""></div>
+</section>
+{% else %}
+<section class="page closing closing_c">{{bg('closing_c.png')}}<img class="bap-logo" src="{{logos.bap}}" alt="">
+  <div class="fit closing-year-c" data-max="96" data-min="40"><div class="fit-inner nowrap">{{year}}</div></div>
+  {{ fit('closing-title-c '+closing_title_class, closing_title, 34, 14, manual.closing) }}
+  <div class="hexphotos"><img class="h1" src="{{closing_photos[0]}}" alt=""><img class="h2" src="{{closing_photos[1]}}" alt=""><img class="h3" src="{{closing_photos[2]}}" alt=""></div>
+</section>
+{% endif %}
+
+<script>
+/* Autoajuste: cada caja .fit toma el tamaño de fuente (pt) más grande, entre data-min y data-max, en que el texto aún cabe.
+   Las cajas con clase "fixed" (tamaño elegido manualmente en la aplicación) se omiten a propósito.
+   Sin JavaScript se usan los tamaños base de style.css. */
+(function(){
+  function fit(el){
+    var inner=el.firstElementChild; if(!inner) return;
+    var shrink=el.getAttribute('data-shrink'); if(shrink) el.style.height='';
+    var mx=parseFloat(el.getAttribute('data-max')), mn=parseFloat(el.getAttribute('data-min'));
+    function ok(sz){
+      el.style.fontSize=sz+'pt';
+      var r=inner.getBoundingClientRect();
+      return r.height<=el.clientHeight+0.6 && r.width<=el.clientWidth+0.6 && el.scrollWidth<=el.clientWidth+1;
+    }
+    if(!ok(mx)){ var lo=mn, hi=mx; for(var i=0;i<14;i++){ var mid=(lo+hi)/2; if(ok(mid)) lo=mid; else hi=mid; } el.style.fontSize=lo+'pt'; }
+    if(shrink){ el.style.height=Math.ceil(inner.getBoundingClientRect().height)+'px'; }
+  }
+  function tighten(){
+    var rows=document.querySelectorAll('.title-row.with-logo');
+    for(var i=0;i<rows.length;i++){
+      var t=rows[i].querySelector('.title'); if(!t||!t.firstElementChild) continue;
+      var rg=document.createRange(); rg.selectNodeContents(t.firstElementChild);
+      var w=rg.getBoundingClientRect().width;
+      if(w>0){ t.style.flex='0 1 auto'; t.style.width=(Math.ceil(w)+4)+'px'; }
+    }
+  }
+  function run(){
+    var rows=document.querySelectorAll('.title-row .title'); for(var k=0;k<rows.length;k++){ rows[k].style.width=''; rows[k].style.flex=''; }
+    var els=document.querySelectorAll('.fit'); for(var i=0;i<els.length;i++){ if(els[i].classList.contains('fixed')) continue; fit(els[i]); }
+    tighten();
+  }
+  run();
+  window.addEventListener('load',run);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(run);
+})();
+</script>
+</body></html>

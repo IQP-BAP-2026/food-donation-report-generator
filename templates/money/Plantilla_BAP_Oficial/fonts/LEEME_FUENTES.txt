@@ -1,0 +1,26 @@
+FUENTE AVENIR PARA LOS REPORTES MONETARIOS
+==========================================
+Los informes usan Avenir. Avenir es una fuente comercial con licencia, por eso no viene incluida.
+
+Cómo activarla (elija UNA opción):
+
+ A) Copie aquí los archivos de la fuente (formatos .otf, .ttf, .woff o .woff2).
+    El generador los incrusta solo en cada PDF; no hace falta instalar nada.
+    El peso se detecta por el nombre del archivo:
+        AvenirLTPro-Light   -> ligera        AvenirLTPro-Roman / -Book -> normal
+        AvenirLTPro-Medium  -> media         AvenirLTPro-Heavy         -> negrita fuerte (títulos y cifras)
+        AvenirLTPro-Black   -> negra         AvenirLTPro-Oblique       -> cursiva
+    Con Roman + Heavy es suficiente (son las que usa el diseño de Canva).
+
+ B) Instale Avenir / Avenir Next / Avenir LT Pro en Windows (clic derecho > Instalar).
+    El generador la usa automáticamente si detecta cualquiera de esos nombres.
+
+Si no hay Avenir disponible, el generador usa una fuente de respaldo (Nunito Sans / Mulish si existen, si no Arial).
+El tamaño automático del texto se recalcula con cualquier fuente, así que el diseño no se rompe.
+Use únicamente fuentes que su organización tenga licenciadas.
+
+FUENTE SERIF (solo para el cierre de hexágonos)
+===============================================
+El diseño de cierre "Hexágonos" usa una fuente serif de adorno para el año y el mensaje (en Canva parece DM Serif Display).
+Si copia a esta misma carpeta un archivo cuyo nombre contenga "serif" (por ejemplo DMSerifDisplay-Regular.ttf), se incrusta y se usa.
+Sin ese archivo se usa Georgia / Times como respaldo.
